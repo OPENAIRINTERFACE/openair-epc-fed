@@ -1,0 +1,11 @@
+Openair-epc-fed is distributed under Apache V2.0 License.
+
+However, it also includes third party-software indicated below.
+
+- component/oai-spgwc is distributed under OAI Public License V1.0.
+  see component/oai-spgwc/LICENSE for more details
+
+- component/oai-spgwu-tiny is distributed under OAI Public License V1.0.
+  see component/oai-spgwu-tiny/LICENSE for more details
+
+Also each component may use also 3rd party-software. Check in each component the NOTICE file.
