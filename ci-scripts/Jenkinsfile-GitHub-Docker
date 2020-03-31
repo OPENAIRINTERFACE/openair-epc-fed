@@ -162,7 +162,7 @@ pipeline {
 
               // Configuring HSS
               HSS_IP = myShRetCmd('docker exec -it ci-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed', new_host_flag, new_host_user, new_host)
-              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + CASSANDRA_IP + ' --hss_s6a=' + HSS_IP + ' --from_docker_file', new_host_flag, new_host_user, new_host)
+              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + Cassandra_IP + ' --hss_s6a=' + HSS_IP + ' --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./hss-cfg.sh ci-oai-hss:/openair-hss/scripts', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"', new_host_flag, new_host_user, new_host)
 
