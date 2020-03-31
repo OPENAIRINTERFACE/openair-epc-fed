@@ -190,7 +190,7 @@ pipeline {
               sh "sleep 2"
               myShCmd('docker exec -d ci-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
               sh "sleep 2"
-              myShCmd('docker exec -d ci-oai-spgwu /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -d ci-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -211,14 +211,14 @@ pipeline {
               myShCmd('docker exec -it ci-oai-hss /bin/bash -c "killall oai_hss"', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-oai-mme /bin/bash -c "killall oai_mme"', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-oai-spgwc /bin/bash -c "killall oai_spgwc"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it ci-oai-spgwu /bin/bash -c "killall oai_spgwu"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-spgwu-tiny /bin/bash -c "killall oai_spgwu"', new_host_flag, new_host_user, new_host)
 
               sh "sleep 5"
 
               myShCmd('docker cp ci-oai-hss:/openair-hss/hss_check_run.log archives', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ci-oai-mme:/openair-mme/mme_check_run.log archives', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ci-oai-spgwc:/openair-spgwc/spgwc_check_run.log archives', new_host_flag, new_host_user, new_host)
-              myShCmd('docker cp ci-oai-spgwu:/openair-spgwu-tiny/spgwu_check_run.log archives', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ci-oai-spgwu-tiny:/openair-spgwu-tiny/spgwu_check_run.log archives', new_host_flag, new_host_user, new_host)
 
               sh "sleep 2"
               copyFrom2ndServer('archives/*_check_run.log', 'archives', new_host_flag, new_host_user, new_host)
