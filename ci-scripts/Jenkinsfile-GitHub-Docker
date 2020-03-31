@@ -149,6 +149,12 @@ pipeline {
               myShCmd('docker run --name ci-oai-mme --network ci-oai-public-net -d oai-mme:' + mmeTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               myShCmd('docker run --privileged --name ci-oai-spgwc --network ci-oai-public-net -d oai-spgwc:' + spgwcTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               myShCmd('docker run --privileged --name ci-oai-spgwu-tiny --network ci-oai-public-net -d oai-spgwu-tiny:' + spgwuTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
+              // Configuring Cassandra
+              myShCmd('docker cp component/oai-hss/src/hss_rel14/db/oai_db.cql ci-cassandra:/home', new_host_flag, new_host_user, new_host)
+              sh "sleep 5"
+              myShCmd('docker exec -it ci-cassandra /bin/bash -c "nodetool status"', new_host_flag, new_host_user, new_host)
+              Cassandra_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ci-cassandra', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ' + Cassandra_IP + '"', new_host_flag, new_host_user, new_host)
             }
           }
         }
