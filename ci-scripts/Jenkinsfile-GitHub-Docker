@@ -144,9 +144,9 @@ pipeline {
           steps {
             script {
               myShCmd('docker run --name ci-cassandra -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch cassandra:2.1', new_host_flag, new_host_user, new_host)
-              myShCmd('docker run --name ci-oai-hss -d oai-hss:' + hssTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker run --privileged --name ci-oai-hss -d oai-hss:' + hssTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               myShCmd('docker network connect ci-oai-public-net ci-oai-hss', new_host_flag, new_host_user, new_host)
-              myShCmd('docker run --name ci-oai-mme --network ci-oai-public-net -d oai-mme:' + mmeTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker run --privileged --name ci-oai-mme --network ci-oai-public-net -d oai-mme:' + mmeTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               myShCmd('docker run --privileged --name ci-oai-spgwc --network ci-oai-public-net -d oai-spgwc:' + spgwcTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               myShCmd('docker run --privileged --name ci-oai-spgwu-tiny --network ci-oai-public-net -d oai-spgwu-tiny:' + spgwuTag + ' /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               // Configuring Cassandra
@@ -155,6 +155,13 @@ pipeline {
               myShCmd('docker exec -it ci-cassandra /bin/bash -c "nodetool status"', new_host_flag, new_host_user, new_host)
               Cassandra_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ci-cassandra', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ' + Cassandra_IP + '"', new_host_flag, new_host_user, new_host)
+
+              // Configuring HSS
+              HSS_IP = myShRetCmd('docker exec -it ci-oai-hss /bin/bash -c "ifconfig eth1 | grep inet | sed -e \'s#^.*inet ##\' -e \'s#  netmask.*##\'"', new_host_flag, new_host_user, new_host)
+              myShCmd("python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${CASSANDRA_IP} --hss_s6a=${HSS_IP} --from_docker_file", new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ./hss-cfg.sh ci-oai-hss:/openair-hss/scripts', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"', new_host_flag, new_host_user, new_host)
+
             }
           }
         }
