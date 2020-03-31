@@ -118,18 +118,18 @@ git submodule update
 
 if [ $doDefault -eq 1 ]
 then
-    git submodule foreach 'git fetch --prune && git checkout develop'
+    git submodule foreach 'git fetch --prune && git checkout develop && git pull origin develop'
 else
     pushd component/oai-hss
-    git fetch --prune && git checkout $HSS_BRANCH
+    git fetch --prune && git checkout $HSS_BRANCH && git pull origin $HSS_BRANCH
     popd
     pushd component/oai-mme
-    git fetch --prune && git checkout $MME_BRANCH
+    git fetch --prune && git checkout $MME_BRANCH && git pull origin $MME_BRANCH
     popd
     pushd component/oai-spgwc
-    git fetch --prune && git checkout $SPGWC_BRANCH
+    git fetch --prune && git checkout $SPGWC_BRANCH && git pull origin $SPGWC_BRANCH
     popd
     pushd component/oai-spgwu-tiny
-    git fetch --prune && git checkout $SPGWU_BRANCH
+    git fetch --prune && git checkout $SPGWU_BRANCH && git pull origin $SPGWU_BRANCH
     popd
 fi
