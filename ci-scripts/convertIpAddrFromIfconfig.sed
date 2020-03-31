@@ -1,0 +1,2 @@
+s@^.*inet @@
+s@  netmask .*@@
