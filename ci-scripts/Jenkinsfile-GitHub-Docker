@@ -54,12 +54,17 @@ def upstreamEvent = false
 // Default tags / branches  --> could be passed on by upstream job or by PR content
 def hssTag = 'develop'
 def hssBranch = 'develop'
+def hssRebuildFlag = false
 def mmeTag = 'develop'
 def mmeBranch = 'develop'
+def mmeRebuildFlag = false
 def spgwcTag = 'develop'
 def spgwcBranch = 'develop'
+def spgwcRebuildFlag = false
 def spgwuTag = 'develop'
 def spgwuBranch = 'develop'
+def spgwuRebuildFlag = false
+def anyRebuildFlag = false
 
 //-------------------------------------------------------------------------------
 // Pipeline start
@@ -115,7 +120,42 @@ pipeline {
               def branchFilePath = readFile('ci-scripts/branchesToTest.txt')
               def lines = branchFilePath.readLines()
               for (line in lines) {
-                echo "line is " + line.trim()
+                if (line.trim() ==~ /^HSS: .*/) {
+                  def myHssBranch = line.trim().replaceFirst(/^HSS: /,'')
+                  echo "HSS branch (to be tested) is " + myHssBranch
+                  if (myHssBranch != 'develop') {
+                    echo "HSS branch (to be built) is " + myHssBranch
+                    anyRebuildFlag = true
+                    hssRebuildFlag = true
+                  }
+                }
+                if (line.trim() ==~ /^MME: .*/) {
+                  def myMmeBranch = line.trim().replaceFirst(/^MME: /,'')
+                  echo "MME branch (to be tested) is " + myMmeBranch
+                  if (myMmeBranch != 'develop') {
+                    echo "MME branch (to be built) is " + myMmeBranch
+                    anyRebuildFlag = true
+                    mmeRebuildFlag = true
+                  }
+                }
+                if (line.trim() ==~ /^SPGW-C: .*/) {
+                  def mySpgwcBranch = line.trim().replaceFirst(/^SPGW-C: /,'')
+                  echo "SPGW-C branch (to be tested) is " + mySpgwcBranch
+                  if (mySpgwcBranch != 'develop') {
+                    echo "SPGW-C branch (to be built) is " + mySpgwcBranch
+                    anyRebuildFlag = true
+                    spgwcRebuildFlag = true
+                  }
+                }
+                if (line.trim() ==~ /^SPGW-U-TINY: .*/) {
+                  def mySpgwuBranch = line.trim().replaceFirst(/^SPGW-U-TINY: /,'')
+                  echo "SPGW-U-TINY branch (to be tested) is " + mySpgwuBranch
+                  if (mySpgwuBranch != 'develop') {
+                    echo "SPGW-U-TINY branch (to be built) is " + mySpgwuBranch
+                    anyRebuildFlag = true
+                    spgwuRebuildFlag = true
+                  }
+                }
               }
             }
             sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
@@ -175,6 +215,43 @@ pipeline {
               myShCmd('git pull origin master', new_host_flag, new_host_user, new_host)
               myShCmd('./scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch, new_host_flag, new_host_user, new_host)
               myShCmd('mkdir archives', new_host_flag, new_host_user, new_host)
+            }
+          }
+        }
+      }
+    }
+    stage ('Build Temporary Images') {
+      when { expression {anyRebuildFlag} }
+      parallel {
+        stage ('Build HSS Temp Image') {
+          when { expression {hssRebuildFlag} }
+          steps {
+            script {
+              echo "Rebuild HSS Temporary Image"
+            }
+          }
+        }
+        stage ('Build MME Temp Image') {
+          when { expression {mmeRebuildFlag} }
+          steps {
+            script {
+              echo "Rebuild MME Temporary Image"
+            }
+          }
+        }
+        stage ('Build SPGW-C Temp Image') {
+          when { expression {spgwcRebuildFlag} }
+          steps {
+            script {
+              echo "Rebuild SPGW-C Temporary Image"
+            }
+          }
+        }
+        stage ('Build SPGW-U-TINY Temp Image') {
+          when { expression {spgwuRebuildFlag} }
+          steps {
+            script {
+              echo "Rebuild SPGW-U-TINY Temporary Image"
             }
           }
         }
