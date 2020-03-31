@@ -1,0 +1,6 @@
+# Modify the name of the branches you want to test in each repository
+# You can even delete lines --> the default `develop` branch/tag will be used
+HSS: develop-formatting
+MME: samsumg-s10-5g-g977u-merged
+SPGW-C: develop
+SPGW-U-TINY: develop
