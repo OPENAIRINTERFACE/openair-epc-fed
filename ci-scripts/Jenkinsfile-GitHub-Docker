@@ -108,24 +108,28 @@ pipeline {
             // If it's a PR, we should recover tags/branch and maybe to rebuild images
             sh "git clean -x -d -f > /dev/null 2>&1"
             sh './scripts/syncComponents.sh --hss-branch ' + hssTag + ' --mme-branch ' + mmeTag + ' --spgwc-branch ' + spgwcTag + ' --spgwu-tiny-branch ' + spgwuTag
+            sh "mkdir archives"
             if (new_host_flag) {
               // Prepare the workspace in remote server
               myShCmd("if [ ! -e .git ]; then git clone --quiet ${GIT_URL} .; else git fetch --quiet --prune; fi", new_host_flag, new_host_user, new_host)
               myShCmd('git clean -x -d -f > /dev/null 2>&1', new_host_flag, new_host_user, new_host)
               myShCmd("git checkout -f ${GIT_COMMIT}", new_host_flag, new_host_user, new_host)
               myShCmd('./scripts/syncComponents.sh --hss-branch ' + hssTag + ' --mme-branch ' + mmeTag + ' --spgwc-branch ' + spgwcTag + ' --spgwu-tiny-branch ' + spgwuTag, new_host_flag, new_host_user, new_host)
+              myShCmd('mkdir archives', new_host_flag, new_host_user, new_host)
             }
           }
           if (upstreamEvent) {
             sh "git clean -x -d -f > /dev/null 2>&1"
             sh "git checkout -f master"
             sh './scripts/syncComponents.sh --hss-branch ' + hssTag + ' --mme-branch ' + mmeTag + ' --spgwc-branch ' + spgwcTag + ' --spgwu-tiny-branch ' + spgwuTag
+            sh "mkdir archives"
             if (new_host_flag) {
               // Prepare the workspace in remote server
               myShCmd("if [ ! -e .git ]; then git clone --quiet ${GIT_URL} .; else git fetch --quiet --prune; fi", new_host_flag, new_host_user, new_host)
               myShCmd('git clean -x -d -f > /dev/null 2>&1', new_host_flag, new_host_user, new_host)
               myShCmd('git checkout -f master', new_host_flag, new_host_user, new_host)
               myShCmd('./scripts/syncComponents.sh --hss-branch ' + hssTag + ' --mme-branch ' + mmeTag + ' --spgwc-branch ' + spgwcTag + ' --spgwu-tiny-branch ' + spgwuTag, new_host_flag, new_host_user, new_host)
+              myShCmd('mkdir archives', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -158,17 +162,35 @@ pipeline {
 
               // Configuring HSS
               HSS_IP = myShRetCmd('docker exec -it ci-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed', new_host_flag, new_host_user, new_host)
-              myShCmd("python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${CASSANDRA_IP} --hss_s6a=${HSS_IP} --from_docker_file", new_host_flag, new_host_user, new_host)
+              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + CASSANDRA_IP + ' --hss_s6a=' + HSS_IP + ' --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./hss-cfg.sh ci-oai-hss:/openair-hss/scripts', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"', new_host_flag, new_host_user, new_host)
 
               // Configuring MME
               MME_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ci-oai-mme', new_host_flag, new_host_user, new_host)
               SPGW0_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ci-oai-spgwc', new_host_flag, new_host_user, new_host)
-              myShCmd("python3 component/oai-mme./ci-scripts/generateConfigFiles.py --kind=MME --hss_s6a=${HSS_IP} --mme_s6a=${MME_IP} --mme_s1c_IP=${MME_IP} --mme_s1c_name=eth0 --mme_s10_IP=${MME_IP} --mme_s10_name=eth0 --mme_s11_IP=${MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} --from_docker_file", new_host_flag, new_host_user, new_host)
-              myShCmd('docker cp ./mme-cfg.sh my-oai-mme:/openair-mme/scripts', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it my-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"', new_host_flag, new_host_user, new_host)
+              myShCmd('python3 component/oai-mme./ci-scripts/generateConfigFiles.py --kind=MME --hss_s6a=' + HSS_IP + ' --mme_s6a=' + MME_IP + ' --mme_s1c_IP=' + MME_IP + ' --mme_s1c_name=eth0 --mme_s10_IP=' + MME_IP + ' --mme_s10_name=eth0 --mme_s11_IP=' + MME_IP + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + SPGW0_IP + ' --from_docker_file', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ./mme-cfg.sh ci-oai-mme:/openair-mme/scripts', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"', new_host_flag, new_host_user, new_host)
 
+              // Configuring SPGW-C
+              myShCmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ./spgwc-cfg.sh ci-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"', new_host_flag, new_host_user, new_host)
+
+              // Configuring SPGW-U
+              myShCmd('python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=' + SPGW0_IP + ' --sxu=eth0 --s1u=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ./spgwu-cfg.sh ci-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"', new_host_flag, new_host_user, new_host)
+
+              // Starting the cNF
+              myShCmd('docker exec -d ci-oai-hss /bin/bash -c "nohup ./bin/oai_hss -j ./etc/hss_rel14.json --reloadkey true > hss_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
+              sh "sleep 2"
+              myShCmd('docker exec -d ci-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > mme_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
+              sh "sleep 2"
+              myShCmd('docker exec -d ci-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
+              sh "sleep 2"
+              myShCmd('docker exec -d ci-oai-spgwu /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -182,9 +204,28 @@ pipeline {
     }
     stage ('Undeploy EPC') {
       stages {
-        stage ('Deploy Containers') {
+        stage ('Undeploy Containers') {
           steps {
             script {
+              // Stop all cNF to retrieve the containers log files
+              myShCmd('docker exec -it ci-oai-hss /bin/bash -c "killall oai_hss"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-mme /bin/bash -c "killall oai_mme"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-spgwc /bin/bash -c "killall oai_spgwc"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it ci-oai-spgwu /bin/bash -c "killall oai_spgwu"', new_host_flag, new_host_user, new_host)
+
+              sh "sleep 5"
+
+              myShCmd('docker cp ci-oai-hss:/openair-hss/hss_check_run.log archives', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ci-oai-mme:/openair-mme/mme_check_run.log archives', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ci-oai-spgwc:/openair-spgwc/spgwc_check_run.log archives', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp ci-oai-spgwu:/openair-spgwu-tiny/spgwu_check_run.log archives', new_host_flag, new_host_user, new_host)
+
+              sh "sleep 2"
+              copyFrom2ndServer('archives/*_check_run.log', 'archives', new_host_flag, new_host_user, new_host)
+              sh "python3 component/oai-hss/ci-scripts/verifySanityCheckDeployment.py --job_name=${JOB_NAME} --job_id=${BUILD_ID}"
+              sh "python3 component/oai-spgwc/ci-scripts/verifySanityCheckDeployment.py --job_name=${JOB_NAME} --job_id=${BUILD_ID}"
+
+              // Remove the containers
               myShCmd('docker rm -f ci-cassandra ci-oai-hss ci-oai-mme ci-oai-spgwc ci-oai-spgwu-tiny', new_host_flag, new_host_user, new_host)
             }
           }
