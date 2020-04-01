@@ -116,44 +116,47 @@ pipeline {
             // We work on the default tags if it is a push
             // If it's a PR, we should recover tags/branch and maybe to rebuild images
             sh "git clean -x -d -f > /dev/null 2>&1"
-            if (fileExists('ci-scripts/branchesToTest.txt')) {
-              def branchFilePath = readFile('ci-scripts/branchesToTest.txt')
-              def lines = branchFilePath.readLines()
-              for (line in lines) {
-                if (line.trim() ==~ /^HSS: .*/) {
-                  hssBranch = line.trim().replaceFirst(/^HSS: /,'')
-                  if (hssBranch != 'develop') {
-                    echo "HSS branch (to be re-built) is " + hssBranch
-                    anyRebuildFlag = true
-                    hssRebuildFlag = true
-                    hssTag = 'fed-temp'
+            if (env.ghprbPullId != null) {
+              sh "./ci-scripts/doGitHubPullRequestTempMerge.sh --src-branch ${env.ghprbSourceBranch} --src-commit ${env.ghprbActualCommit} --target-branch ${env.ghprbTargetBranch} --target-commit ${GIT_COMMIT}"
+              if (fileExists('ci-scripts/branchesToTest.txt')) {
+                def branchFilePath = readFile('ci-scripts/branchesToTest.txt')
+                def lines = branchFilePath.readLines()
+                for (line in lines) {
+                  if (line.trim() ==~ /^HSS: .*/) {
+                    hssBranch = line.trim().replaceFirst(/^HSS: /,'')
+                    if (hssBranch != 'develop') {
+                      echo "HSS branch (to be re-built) is " + hssBranch
+                      anyRebuildFlag = true
+                      hssRebuildFlag = true
+                      hssTag = 'fed-temp'
+                    }
                   }
-                }
-                if (line.trim() ==~ /^MME: .*/) {
-                  mmeBranch = line.trim().replaceFirst(/^MME: /,'')
-                  if (mmeBranch != 'develop') {
-                    echo "MME branch (to be re-built) is " + mmeBranch
-                    anyRebuildFlag = true
-                    mmeRebuildFlag = true
-                    mmeTag = 'fed-temp'
+                  if (line.trim() ==~ /^MME: .*/) {
+                    mmeBranch = line.trim().replaceFirst(/^MME: /,'')
+                    if (mmeBranch != 'develop') {
+                      echo "MME branch (to be re-built) is " + mmeBranch
+                      anyRebuildFlag = true
+                      mmeRebuildFlag = true
+                      mmeTag = 'fed-temp'
+                    }
                   }
-                }
-                if (line.trim() ==~ /^SPGW-C: .*/) {
-                  spgwcBranch = line.trim().replaceFirst(/^SPGW-C: /,'')
-                  if (spgwcBranch != 'develop') {
-                    echo "SPGW-C branch (to be re-built) is " + spgwcBranch
-                    anyRebuildFlag = true
-                    spgwcRebuildFlag = true
-                    spgwcTag = 'fed-temp'
+                  if (line.trim() ==~ /^SPGW-C: .*/) {
+                    spgwcBranch = line.trim().replaceFirst(/^SPGW-C: /,'')
+                    if (spgwcBranch != 'develop') {
+                      echo "SPGW-C branch (to be re-built) is " + spgwcBranch
+                      anyRebuildFlag = true
+                      spgwcRebuildFlag = true
+                      spgwcTag = 'fed-temp'
+                    }
                   }
-                }
-                if (line.trim() ==~ /^SPGW-U-TINY: .*/) {
-                  spgwuBranch = line.trim().replaceFirst(/^SPGW-U-TINY: /,'')
-                  if (spgwuBranch != 'develop') {
-                    echo "SPGW-U-TINY branch (to be re-built) is " + spgwuBranch
-                    anyRebuildFlag = true
-                    spgwuRebuildFlag = true
-                    spgwuTag = 'fed-temp'
+                  if (line.trim() ==~ /^SPGW-U-TINY: .*/) {
+                    spgwuBranch = line.trim().replaceFirst(/^SPGW-U-TINY: /,'')
+                    if (spgwuBranch != 'develop') {
+                      echo "SPGW-U-TINY branch (to be re-built) is " + spgwuBranch
+                      anyRebuildFlag = true
+                      spgwuRebuildFlag = true
+                      spgwuTag = 'fed-temp'
+                    }
                   }
                 }
               }
