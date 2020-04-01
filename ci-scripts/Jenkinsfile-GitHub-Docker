@@ -121,39 +121,39 @@ pipeline {
               def lines = branchFilePath.readLines()
               for (line in lines) {
                 if (line.trim() ==~ /^HSS: .*/) {
-                  def myHssBranch = line.trim().replaceFirst(/^HSS: /,'')
-                  echo "HSS branch (to be tested) is " + myHssBranch
-                  if (myHssBranch != 'develop') {
-                    echo "HSS branch (to be built) is " + myHssBranch
+                  hssBranch = line.trim().replaceFirst(/^HSS: /,'')
+                  if (hssBranch != 'develop') {
+                    echo "HSS branch (to be re-built) is " + hssBranch
                     anyRebuildFlag = true
                     hssRebuildFlag = true
+                    hssTag = 'fed-temp'
                   }
                 }
                 if (line.trim() ==~ /^MME: .*/) {
-                  def myMmeBranch = line.trim().replaceFirst(/^MME: /,'')
-                  echo "MME branch (to be tested) is " + myMmeBranch
-                  if (myMmeBranch != 'develop') {
-                    echo "MME branch (to be built) is " + myMmeBranch
+                  mmeBranch = line.trim().replaceFirst(/^MME: /,'')
+                  if (mmeBranch != 'develop') {
+                    echo "MME branch (to be re-built) is " + mmeBranch
                     anyRebuildFlag = true
                     mmeRebuildFlag = true
+                    mmeTag = 'fed-temp'
                   }
                 }
                 if (line.trim() ==~ /^SPGW-C: .*/) {
-                  def mySpgwcBranch = line.trim().replaceFirst(/^SPGW-C: /,'')
-                  echo "SPGW-C branch (to be tested) is " + mySpgwcBranch
-                  if (mySpgwcBranch != 'develop') {
-                    echo "SPGW-C branch (to be built) is " + mySpgwcBranch
+                  spgwcBranch = line.trim().replaceFirst(/^SPGW-C: /,'')
+                  if (spgwcBranch != 'develop') {
+                    echo "SPGW-C branch (to be re-built) is " + spgwcBranch
                     anyRebuildFlag = true
                     spgwcRebuildFlag = true
+                    spgwcTag = 'fed-temp'
                   }
                 }
                 if (line.trim() ==~ /^SPGW-U-TINY: .*/) {
-                  def mySpgwuBranch = line.trim().replaceFirst(/^SPGW-U-TINY: /,'')
-                  echo "SPGW-U-TINY branch (to be tested) is " + mySpgwuBranch
-                  if (mySpgwuBranch != 'develop') {
-                    echo "SPGW-U-TINY branch (to be built) is " + mySpgwuBranch
+                  spgwuBranch = line.trim().replaceFirst(/^SPGW-U-TINY: /,'')
+                  if (spgwuBranch != 'develop') {
+                    echo "SPGW-U-TINY branch (to be re-built) is " + spgwuBranch
                     anyRebuildFlag = true
                     spgwuRebuildFlag = true
+                    spgwuTag = 'fed-temp'
                   }
                 }
               }
@@ -227,7 +227,11 @@ pipeline {
           when { expression {hssRebuildFlag} }
           steps {
             script {
-              echo "Rebuild HSS Temporary Image"
+              cmd = 'cd component/oai-hss && git log -1 --pretty=format:"%H" origin/' + hssBranch
+              hssCommit = sh returnStdout: true, script: "${cmd}"
+              hssCommit = hssCommit.trim()
+              echo "Rebuild HSS Temporary Image on Commit: " + hssCommit
+              myShCmd('docker build --target oai-hss --tag oai-hss:' + hssTag + ' --file component/oai-hss/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + hssBranch + '" --build-arg CI_SRC_COMMIT="' + hssCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/hss_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -235,7 +239,11 @@ pipeline {
           when { expression {mmeRebuildFlag} }
           steps {
             script {
-              echo "Rebuild MME Temporary Image"
+              cmd = 'cd component/oai-mme && git log -1 --pretty=format:"%H" origin/' + mmeBranch
+              mmeCommit = sh returnStdout: true, script: "${cmd}"
+              mmeCommit = mmeCommit.trim()
+              echo "Rebuild MME Temporary Image on Commit: " + mmeCommit
+              myShCmd('docker build --target oai-mme --tag oai-mme:' + mmeTag + ' --file component/oai-mme/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + mmeBranch + '" --build-arg CI_SRC_COMMIT="' + mmeCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/mme_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -243,7 +251,11 @@ pipeline {
           when { expression {spgwcRebuildFlag} }
           steps {
             script {
-              echo "Rebuild SPGW-C Temporary Image"
+              cmd = 'cd component/oai-spgwc && git log -1 --pretty=format:"%H" origin/' + spgwcBranch
+              spgwcCommit = sh returnStdout: true, script: "${cmd}"
+              spgwcCommit = spgwcCommit.trim()
+              echo "Rebuild SPGW-C Temporary Image on Commit: " + spgwcCommit
+              myShCmd('docker build --target oai-spgwc --tag oai-spgwc:' + spgwcTag + ' --file component/oai-spgwc/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + spgwcBranch + '" --build-arg CI_SRC_COMMIT="' + spgwcCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/spgwc_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -251,7 +263,11 @@ pipeline {
           when { expression {spgwuRebuildFlag} }
           steps {
             script {
-              echo "Rebuild SPGW-U-TINY Temporary Image"
+              cmd = 'cd component/oai-spgwu-tiny && git log -1 --pretty=format:"%H" origin/' + spgwuBranch
+              spgwuCommit = sh returnStdout: true, script: "${cmd}"
+              spgwuCommit = spgwuCommit.trim()
+              echo "Rebuild SPGW-U-TINY Temporary Image on Commit: " + spgwuCommit
+              myShCmd('docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:' + spgwuTag + ' --file component/oai-spgwu-tiny/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + spgwuBranch + '" --build-arg CI_SRC_COMMIT="' + spgwuCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/spgwu_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -361,6 +377,28 @@ pipeline {
         }
       }
     }
+    stage ('Remove Temporary Images') {
+      when { expression {anyRebuildFlag} }
+      steps {
+        script {
+          if (hssRebuildFlag) {
+            myShCmd('docker image rm oai-hss:' + hssTag, new_host_flag, new_host_user, new_host)
+          }
+          if (mmeRebuildFlag) {
+            myShCmd('docker image rm oai-mme:' + mmeTag, new_host_flag, new_host_user, new_host)
+          }
+          if (spgwcRebuildFlag) {
+            myShCmd('docker image rm oai-spgwc:' + spgwcTag, new_host_flag, new_host_user, new_host)
+          }
+          if (spgwuRebuildFlag) {
+            myShCmd('docker image rm oai-spgwu:' + spgwuTag, new_host_flag, new_host_user, new_host)
+          }
+          myShCmd('docker image prune --force', new_host_flag, new_host_user, new_host)
+          // No need to remove anything in the clean-up post stage
+          anyRebuildFlag = false
+        }
+      }
+    }
   }
   post {
     always {
@@ -375,6 +413,38 @@ pipeline {
           myShCmd('docker network rm cicd-oai-public-net', new_host_flag, new_host_user, new_host)
         } catch (Exception e) {
           echo "No problem: we may not started all docker networks or already deleted"
+        }
+        // Removing any leftover images
+        if (anyRebuildFlag) {
+          if (hssRebuildFlag) {
+            try {
+              myShCmd('docker image rm oai-hss:' + hssTag, new_host_flag, new_host_user, new_host)
+            } catch (Exception e) {
+              echo "No problem: we may have already remove it"
+            }
+          }
+          if (mmeRebuildFlag) {
+            try {
+              myShCmd('docker image rm oai-mme:' + mmeTag, new_host_flag, new_host_user, new_host)
+            } catch (Exception e) {
+              echo "No problem: we may have already remove it"
+            }
+          }
+          if (spgwcRebuildFlag) {
+            try {
+              myShCmd('docker image rm oai-spgwc:' + spgwcTag, new_host_flag, new_host_user, new_host)
+            } catch (Exception e) {
+              echo "No problem: we may have already remove it"
+            }
+          }
+          if (spgwuRebuildFlag) {
+            try {
+              myShCmd('docker image rm oai-spgwu-tiny:' + spgwuTag, new_host_flag, new_host_user, new_host)
+            } catch (Exception e) {
+              echo "No problem: we may have already remove it"
+            }
+          }
+          myShCmd('docker image prune --force', new_host_flag, new_host_user, new_host)
         }
 
         // Zipping all archived log files
