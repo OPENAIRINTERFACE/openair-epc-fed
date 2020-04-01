@@ -342,17 +342,20 @@ pipeline {
               myShCmd('docker cp ./spgwu-cfg.sh cicd-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
               myShCmdWithLog('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"', 'archives/spgwu_config.log', new_host_flag, new_host_user, new_host)
 
-              // Starting the cNF
+              // Starting the captures in each container
               myShCmd('docker exec -d cicd-oai-hss /bin/bash -c "nohup tshark -i eth0 -i eth1 -w /tmp/hss_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -d cicd-oai-mme /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/mme_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -d cicd-oai-spgwc /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -d cicd-oai-spgwu-tiny /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
+              sh "sleep 10"
+
+              // Starting the cNF
               myShCmd('docker exec -d cicd-oai-hss /bin/bash -c "nohup ./bin/oai_hss -j ./etc/hss_rel14.json --reloadkey true > hss_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
               sh "sleep 2"
-              myShCmd('docker exec -d cicd-oai-mme /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/mme_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -d cicd-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > mme_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
               sh "sleep 2"
-              myShCmd('docker exec -d cicd-oai-spgwc /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -d cicd-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
               sh "sleep 2"
-              myShCmd('docker exec -d cicd-oai-spgwu-tiny /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -d cicd-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
             }
           }
