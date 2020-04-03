@@ -405,8 +405,8 @@ pipeline {
             dsTesterShCmd('if [ `ps aux | grep dsTest | grep -v grep | grep -c dsTest` -ne 0 ]; then sudo killall --signal SIGINT dsTest; fi', dsT_host_flag, dsT_host_user, dsT_host)
             sh "sleep 5"
             // Starting DS Tester fresh with nohup to avoid ssh session closure impact
-            dsTesterShCmd('./dsTest.sh', dsT_host_flag, dsT_host_user, dsT_host)
-            sh "sleep 10"
+            dsTesterShCmd('sudo rm -f /tmp/dsTesterStart.log && ./dsTest.sh && sleep 10', dsT_host_flag, dsT_host_user, dsT_host)
+            dsTesterShCmd('until [ `egrep -c "Base dictionary successfully loaded" /tmp/dsTesterStart.log` -ne 0 ]; do sleep 60; done', dsT_host_flag, dsT_host_user, dsT_host)
 
             // Retrieve MME S1-C IP address and SPGW-U S1-U IP address
             MME_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" cicd-oai-mme', new_host_flag, new_host_user, new_host)
