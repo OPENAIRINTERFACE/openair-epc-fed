@@ -36,6 +36,7 @@ def cn_ci_host = params.Host_CN_CI_Server
 
 // for lock
 def cn_ci_resource = params.DockerContainers
+def ds_tester_ci_resource = params.DsTester
 
 // Location of the 2nd CN executor
 def new_host_flag = false
@@ -369,8 +370,12 @@ pipeline {
     }
     stage ('Check with DS Tester') {
       steps {
-        echo "TO BE DONE!"
-        sh 'sleep 30'
+        lock (ds_tester_ci_resource) {
+          script {
+            echo "TO BE DONE!"
+            sh 'sleep 30'
+          }
+        }
       }
     }
     stage ('Undeploy EPC') {
@@ -379,11 +384,32 @@ pipeline {
           steps {
             script {
               // Stop all cNF to retrieve the containers log files
-              myShCmd('docker exec -it cicd-oai-hss /bin/bash -c "killall oai_hss tshark"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it cicd-oai-mme /bin/bash -c "killall oai_mme tshark"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it cicd-oai-spgwc /bin/bash -c "killall oai_spgwc tshark"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "killall oai_spgwu tshark"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it cicd-oai-hss /bin/bash -c "killall --signal SIGINT oai_hss tshark"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it cicd-oai-mme /bin/bash -c "killall --signal SIGINT oai_mme tshark"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it cicd-oai-spgwc /bin/bash -c "killall --signal SIGINT oai_spgwc tshark"', new_host_flag, new_host_user, new_host)
+              myShCmd('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "killall --signal SIGINT oai_spgwu tshark"', new_host_flag, new_host_user, new_host)
 
+              sh "sleep 5"
+              try {
+                myShCmd('docker exec -it cicd-oai-hss /bin/bash -c "killall --signal SIGKILL oai_hss tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "HSS process was maybe already killed"
+              }
+              try {
+                myShCmd('docker exec -it cicd-oai-mme /bin/bash -c "killall --signal SIGKILL oai_mme tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "MME process was maybe already killed"
+              }
+              try {
+                myShCmd('docker exec -it cicd-oai-spgwc /bin/bash -c "killall --signal SIGKILL oai_spgwc tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "SPGW-C process was maybe already killed"
+              }
+              try {
+                myShCmd('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "killall --signal SIGKILL oai_spgwu tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "SPGW-U process was maybe already killed"
+              }
               sh "sleep 5"
 
               myShCmd('docker cp cicd-oai-hss:/openair-hss/hss_check_run.log archives', new_host_flag, new_host_user, new_host)
