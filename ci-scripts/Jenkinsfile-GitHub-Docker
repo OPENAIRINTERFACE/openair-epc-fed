@@ -402,10 +402,10 @@ pipeline {
         lock (ds_tester_ci_resource) {
           script {
             // Killing DS Tester if still running
-            dsTesterShCmd('if [ `ps aux | grep dsTest | grep -v grep | grep -c dsTest` -ne 0 ]; then sudo killall --signal SIGINT dsTest; fi', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('if [ `ps aux | grep dsTest | grep -v grep | grep -c dsTest` -ne 0 ]; then sudo killall --signal SIGINT dsTest; fi', dsT_host_flag, dsT_host_user, dsT_host)
             sh "sleep 5"
             // Starting DS Tester fresh
-            dsTesterShCmd('/usr/local/devsol/bin/dsTest.sh', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('/usr/local/devsol/bin/dsTest.sh', dsT_host_flag, dsT_host_user, dsT_host)
             sh "sleep 10"
 
             // Retrieve MME S1-C IP address and SPGW-U S1-U IP address
@@ -415,17 +415,17 @@ pipeline {
             // Adapt template scenario to deployment
             dsTesterShCmd('sed -e "s@DS_TESTER_IP_ADDRESS@' + dsT_host_ip_addr + '@" -e "s@MME_S1_C_IP_ADDRESS@' + MME_IP + '@" -e "s@SPGWU_S1_U_IP_ADDRESS@' + SPGWU_IP + '@" template_app_s1_verification_enb_oai.xml > ci_app_s1_verification_enb_oai.xml', new_host_flag, new_host_user, new_host)
 
-            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "nodes delete"', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "nodes delete"', dsT_host_flag, dsT_host_user, dsT_host)
             sh 'sleep 5'
-            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "validate /home/' + dsT_host_user + '/CI-DS-TESTER/ci_app_s1_verification_enb_oai.xml"', dsT_host_flag, dsT_host, dsT_host_user)
-            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "resource /home/' + dsT_host_user + '/CI-DS-TESTER/ci_app_s1_verification_enb_oai.xml"', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "validate /home/' + dsT_host_user + '/CI-DS-TESTER/ci_app_s1_verification_enb_oai.xml"', dsT_host_flag, dsT_host_user, dsT_host)
+            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "resource /home/' + dsT_host_user + '/CI-DS-TESTER/ci_app_s1_verification_enb_oai.xml"', dsT_host_flag, dsT_host_user, dsT_host)
             sh 'sleep 5'
-            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "source /home/' + dsT_host_user + '/CI-DS-TESTER/ci_app_s1_verification_enb_oai.xml"', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "source /home/' + dsT_host_user + '/CI-DS-TESTER/ci_app_s1_verification_enb_oai.xml"', dsT_host_flag, dsT_host_user, dsT_host)
             sh 'sleep 60'
-            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "nodes delete"', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('/usr/local/devsol/bin/dsClient -c "nodes delete"', dsT_host_flag, dsT_host_user, dsT_host)
 
             sh 'sleep 10'
-            dsTesterShCmd('if [ `ps aux | grep dsTest | grep -v grep | grep -c dsTest` -ne 0 ]; then sudo killall --signal SIGINT dsTest; fi', dsT_host_flag, dsT_host, dsT_host_user)
+            dsTesterShCmd('if [ `ps aux | grep dsTest | grep -v grep | grep -c dsTest` -ne 0 ]; then sudo killall --signal SIGINT dsTest; fi', dsT_host_flag, dsT_host_user, dsT_host)
           }
         }
       }
