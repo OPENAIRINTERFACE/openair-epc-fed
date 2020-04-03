@@ -160,8 +160,10 @@ pipeline {
                   }
                 }
               }
+              sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+            } else {
+              sh './scripts/syncComponents.sh'
             }
-            sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir archives"
             if (new_host_flag) {
               // Prepare the workspace in remote server
@@ -321,19 +323,22 @@ pipeline {
 
               // Configuring HSS
               HSS_IP = myShRetCmd('docker exec -it cicd-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed', new_host_flag, new_host_user, new_host)
-              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + Cassandra_IP + ' --hss_s6a=' + HSS_IP + ' --from_docker_file', new_host_flag, new_host_user, new_host)
+              // Using parameters for DS Tester Scenarios
+              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + Cassandra_IP + ' --hss_s6a=' + HSS_IP + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./hss-cfg.sh cicd-oai-hss:/openair-hss/scripts', new_host_flag, new_host_user, new_host)
               myShCmdWithLog('docker exec -it cicd-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"', 'archives/hss_config.log', new_host_flag, new_host_user, new_host)
 
               // Configuring MME
               MME_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" cicd-oai-mme', new_host_flag, new_host_user, new_host)
               SPGW0_IP = myShRetCmd('docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" cicd-oai-spgwc', new_host_flag, new_host_user, new_host)
-              myShCmd('python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --hss_s6a=' + HSS_IP + ' --mme_s6a=' + MME_IP + ' --mme_s1c_IP=' + MME_IP + ' --mme_s1c_name=eth0 --mme_s10_IP=' + MME_IP + ' --mme_s10_name=eth0 --mme_s11_IP=' + MME_IP + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + SPGW0_IP + ' --from_docker_file', new_host_flag, new_host_user, new_host)
+              // Using parameters for DS Tester Scenarios
+              myShCmd('python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --hss_s6a=' + HSS_IP + ' --mme_s6a=' + MME_IP + ' --mme_s1c_IP=' + MME_IP + ' --mme_s1c_name=eth0 --mme_s10_IP=' + MME_IP + ' --mme_s10_name=eth0 --mme_s11_IP=' + MME_IP + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + SPGW0_IP + ' --mme_gid=455 --mme_code=5 --mcc=320 --mnc=230 --tac_list="5 6 7" --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./mme-cfg.sh cicd-oai-mme:/openair-mme/scripts', new_host_flag, new_host_user, new_host)
               myShCmdWithLog('docker exec -it cicd-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"', 'archives/mme_config.log', new_host_flag, new_host_user, new_host)
 
               // Configuring SPGW-C
-              myShCmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
+              // Using parameters for DS Tester Scenarios
+              myShCmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./spgwc-cfg.sh cicd-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
               myShCmdWithLog('docker exec -it cicd-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"', 'archives/spgwc_config.log', new_host_flag, new_host_user, new_host)
 
