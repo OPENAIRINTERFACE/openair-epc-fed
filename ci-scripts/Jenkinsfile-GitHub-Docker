@@ -404,8 +404,8 @@ pipeline {
             // Killing DS Tester if still running
             dsTesterShCmd('if [ `ps aux | grep dsTest | grep -v grep | grep -c dsTest` -ne 0 ]; then sudo killall --signal SIGINT dsTest; fi', dsT_host_flag, dsT_host_user, dsT_host)
             sh "sleep 5"
-            // Starting DS Tester fresh
-            dsTesterShCmd('/usr/local/devsol/bin/dsTest.sh', dsT_host_flag, dsT_host_user, dsT_host)
+            // Starting DS Tester fresh with nohup to avoid ssh session closure impact
+            dsTesterShCmd('./dsTest.sh', dsT_host_flag, dsT_host_user, dsT_host)
             sh "sleep 10"
 
             // Retrieve MME S1-C IP address and SPGW-U S1-U IP address
