@@ -245,6 +245,10 @@ pipeline {
             sh "git pull origin master"
             sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir archives"
+            sh "mkdir archives/oai-hss-cfg"
+            sh "mkdir archives/oai-mme-cfg"
+            sh "mkdir archives/oai-spgwc-cfg"
+            sh "mkdir archives/oai-spgwu-cfg"
             if (new_host_flag) {
               // Prepare the workspace in remote server
               myShCmd("if [ ! -e .git ]; then git clone --quiet ${GIT_URL} .; else git fetch --quiet --prune; fi", new_host_flag, new_host_user, new_host)
