@@ -193,7 +193,10 @@ pipeline {
             } else {
               sh './scripts/syncComponents.sh'
             }
-            sh "mkdir archives"
+            sh "mkdir archives/oai-hss-cfg"
+            sh "mkdir archives/oai-mme-cfg"
+            sh "mkdir archives/oai-spgwc-cfg"
+            sh "mkdir archives/oai-spgwu-cfg"
             if (new_host_flag) {
               // Prepare the workspace in remote server
               myShCmd("if [ ! -e .git ]; then git clone --quiet ${GIT_URL} .; else git fetch --quiet --prune; fi", new_host_flag, new_host_user, new_host)
@@ -375,6 +378,16 @@ pipeline {
               myShCmd('python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=' + SPGW0_IP + ' --sxu=eth0 --s1u=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./spgwu-cfg.sh cicd-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
               myShCmdWithLog('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"', 'archives/spgwu_config.log', new_host_flag, new_host_user, new_host)
+
+              // Recovering all configuration files
+              myShCmd('docker cp cicd-oai-hss:/openair-hss/etc/. archives/oai-hss-cfg', new_host_flag, new_host_user, new_host)
+              copyFrom2ndServer('archives/oai-hss-cfg/*.*', 'archives/oai-hss-cfg', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp cicd-oai-mme:/openair-mme/etc/. archives/oai-mme-cfg', new_host_flag, new_host_user, new_host)
+              copyFrom2ndServer('archives/oai-mme-cfg/*.*', 'archives/oai-mme-cfg', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp cicd-oai-spgwc:/openair-spgwc/etc/. archives/oai-spgwc-cfg', new_host_flag, new_host_user, new_host)
+              copyFrom2ndServer('archives/oai-spgwc-cfg/*.*', 'archives/oai-spgwc-cfg', new_host_flag, new_host_user, new_host)
+              myShCmd('docker cp cicd-oai-spgwu-tiny:/openair-spgwu-tiny/etc/. archives/oai-spgwu-cfg', new_host_flag, new_host_user, new_host)
+              copyFrom2ndServer('archives/oai-spgwu-cfg/*.*', 'archives/oai-spgwu-cfg', new_host_flag, new_host_user, new_host)
 
               // Starting the captures in each container
               myShCmd('docker exec -d cicd-oai-hss /bin/bash -c "nohup tshark -i eth0 -i eth1 -w /tmp/hss_check_run.pcap 2>&1 > /dev/null"', new_host_flag, new_host_user, new_host)
