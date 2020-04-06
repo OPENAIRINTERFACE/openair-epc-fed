@@ -193,6 +193,7 @@ pipeline {
             } else {
               sh './scripts/syncComponents.sh'
             }
+            sh "mkdir archives"
             sh "mkdir archives/oai-hss-cfg"
             sh "mkdir archives/oai-mme-cfg"
             sh "mkdir archives/oai-spgwc-cfg"
