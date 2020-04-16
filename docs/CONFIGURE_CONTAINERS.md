@@ -12,6 +12,18 @@
   </tr>
 </table>
 
+
+**TABLE OF CONTENTS**
+
+1.  [Networking](#1-create-a-docker-bridged-network)
+2.  [Deploy](#2-deploy-the-containers)
+3.  [Configure](#3-configure-the-containers)
+    1.  [Cassandra](#31-cassandra)
+    2.  [HSS](#32-hss)
+    3.  [MME](#33-mme)
+    4.  [SPGW-C](#34-spgw-c)
+    5.  [SPGW-U](#35-spgw-u)
+
 # 1. Create a Docker Bridged Network #
 
 ```bash
@@ -211,7 +223,7 @@ and not the Docker Host IP address.
 ## 3.4. SPGW-C ##
 
 ```bash
-$ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com --from_docker_file
+$ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com --dns1_ip=YOUR_DNS_IP_ADDRESS --dns2_ip=A_SECONDARY_DNS_IP_ADDRESS --from_docker_file
 $ docker cp ./spgwc-cfg.sh prod-oai-spgwc:/openair-spgwc
 $ docker exec -it prod-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"
 ifconfig lo:s5c 127.0.0.15 up --> OK
@@ -226,3 +238,4 @@ $ docker cp ./spgwu-cfg.sh prod-oai-spgwu-tiny:/openair-spgwu-tiny
 $ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"
 ```
 
+You are now ready to [start the network functions](./RUN_CNF.md).
