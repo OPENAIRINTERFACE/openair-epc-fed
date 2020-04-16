@@ -94,3 +94,6 @@ $ docker image ls
 oai-spgwu-tiny          production             588e14481f2b        1 minute ago          220MB
 ...
 ```
+
+You are ready to [Configure the Containers](./CONFIGURE_CONTAINERS.md).
+

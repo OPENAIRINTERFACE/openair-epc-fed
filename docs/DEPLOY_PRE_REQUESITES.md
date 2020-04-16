@@ -95,5 +95,5 @@ $ sudo sysctl net.ipv4.conf.all.forwarding=1
 $ sudo iptables -P FORWARD ACCEPT
 ```
 
-You are ready to [build the images](./docs/BUILD_IMAGES.md).
+You are ready to [build the images](./BUILD_IMAGES.md).
 
