@@ -69,7 +69,7 @@ We are using the following configuration. You need to adapt to your setup.
    * 7
 *  APN1 = apn1.carrier.com
 *  APN2 = apn2.carrier.com
-*  200 Users with the 1st IMSI = 100000000000001
+*  200 Users with the 1st IMSI = 320230100000001
 *  LTE-KEY = 0c0a34601d4f07677303652c0462535b
 *  OP = 63bfa50ee6523365ff14c1f45f88737d
 
@@ -86,10 +86,10 @@ $ docker exec -it prod-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ${C
 
 ```bash
 $ HSS_IP=`docker exec -it prod-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed`
-$ python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${Cassandra_IP} --hss_s6a=${HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=1 --from_docker_file
+$ python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${Cassandra_IP} --hss_s6a=${HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=320230100000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=1 --from_docker_file
 $ docker cp ./hss-cfg.sh prod-oai-hss:/openair-hss/scripts
 $ docker exec -it prod-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"
-INFO:root:100000000000181 181 41 0c0a34601d4f07677303652c0462535b mme.openairinterface.org 3 openairinterface.org 2683b376d1056746de3b254012908e0e 96 {"Subscription-Data":{"Access-Restriction-Data":41,"Subscriber-Status":0,"Network-Access-Mode":2,"Regional-Subscription-Zone-Code":["0x0123","0x4567","0x89AB","0xCDEF","0x1234","0x5678","0x9ABC","0xDEF0","0x2345","0x6789"],"MSISDN":"0x181","AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"APN-Configuration-Profile":{"Context-Identifier":0,"All-APN-Configurations-Included-Indicator":0,"APN-Configuration":{"Context-Identifier":0,"PDN-Type":0,"Service-Selection":"apn1.carrier.com","EPS-Subscribed-QoS-Profile":{"QoS-Class-Identifier":9,"Allocation-Retention-Priority":{"Priority-Level":15,"Pre-emption-Capability":0,"Pre-emption-Vulnerability":0}},"AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"PDN-GW-Allocation-Type":0,"MIP6-Agent-Info":{"MIP-Home-Agent-Address":["172.26.17.183"]}},"APN-Configuration":{"Context-Identifier":0,"PDN-Type":0,"Service-Selection":"apn2.carrier.com","EPS-Subscribed-QoS-Profile":{"QoS-Class-Identifier":9,"Allocation-Retention-Priority":{"Priority-Level":13,"Pre-emption-Capability":1,"Pre-emption-Vulnerability":0}},"AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"PDN-GW-Allocation-Type":0,"MIP6-Agent-Info":{"MIP-Home-Agent-Address":["172.26.17.183"]}}},"Subscribed-Periodic-RAU-TAU-Timer":0}}
+INFO:root:320230100000181 181 41 0c0a34601d4f07677303652c0462535b mme.openairinterface.org 3 openairinterface.org 2683b376d1056746de3b254012908e0e 96 {"Subscription-Data":{"Access-Restriction-Data":41,"Subscriber-Status":0,"Network-Access-Mode":2,"Regional-Subscription-Zone-Code":["0x0123","0x4567","0x89AB","0xCDEF","0x1234","0x5678","0x9ABC","0xDEF0","0x2345","0x6789"],"MSISDN":"0x181","AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"APN-Configuration-Profile":{"Context-Identifier":0,"All-APN-Configurations-Included-Indicator":0,"APN-Configuration":{"Context-Identifier":0,"PDN-Type":0,"Service-Selection":"apn1.carrier.com","EPS-Subscribed-QoS-Profile":{"QoS-Class-Identifier":9,"Allocation-Retention-Priority":{"Priority-Level":15,"Pre-emption-Capability":0,"Pre-emption-Vulnerability":0}},"AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"PDN-GW-Allocation-Type":0,"MIP6-Agent-Info":{"MIP-Home-Agent-Address":["172.26.17.183"]}},"APN-Configuration":{"Context-Identifier":0,"PDN-Type":0,"Service-Selection":"apn2.carrier.com","EPS-Subscribed-QoS-Profile":{"QoS-Class-Identifier":9,"Allocation-Retention-Priority":{"Priority-Level":13,"Pre-emption-Capability":1,"Pre-emption-Vulnerability":0}},"AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"PDN-GW-Allocation-Type":0,"MIP6-Agent-Info":{"MIP-Home-Agent-Address":["172.26.17.183"]}}},"Subscribed-Periodic-RAU-TAU-Timer":0}}
 ....
 DEBUG:cassandra.io.libevreactor:Closing connection (140274865011456) to 192.168.17.4
 DEBUG:cassandra.io.libevreactor:Closed socket to 192.168.17.4
@@ -213,7 +213,6 @@ Write out database with 1 new entries
 Data Base Updated
 /openair-mme/scripts
 MME S6A: Found valid certificate in /openair-mme/etc
-Connection to orion closed.
 ```
 
 **IMPORTANT: MME_IP VALUE IS THE ONE YOU NEED TO PASS TO YOUR ENB/GNB CONFIGURATION FILE**
