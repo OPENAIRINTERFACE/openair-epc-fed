@@ -466,10 +466,26 @@ pipeline {
           steps {
             script {
               // Stop all cNF to retrieve the containers log files
-              myShCmd('docker exec -it cicd-oai-hss /bin/bash -c "killall --signal SIGINT oai_hss tshark"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it cicd-oai-mme /bin/bash -c "killall --signal SIGINT oai_mme tshark"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it cicd-oai-spgwc /bin/bash -c "killall --signal SIGINT oai_spgwc tshark"', new_host_flag, new_host_user, new_host)
-              myShCmd('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "killall --signal SIGINT oai_spgwu tshark"', new_host_flag, new_host_user, new_host)
+              try {
+                myShCmd('docker exec -it cicd-oai-hss /bin/bash -c "killall --signal SIGINT oai_hss tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "Maybe the cNF crashed! Let it go to retrieve logs"
+              }
+              try {
+                myShCmd('docker exec -it cicd-oai-mme /bin/bash -c "killall --signal SIGINT oai_mme tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "Maybe the cNF crashed! Let it go to retrieve logs"
+              }
+              try {
+                myShCmd('docker exec -it cicd-oai-spgwc /bin/bash -c "killall --signal SIGINT oai_spgwc tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "Maybe the cNF crashed! Let it go to retrieve logs"
+              }
+              try {
+                myShCmd('docker exec -it cicd-oai-spgwu-tiny /bin/bash -c "killall --signal SIGINT oai_spgwu tshark"', new_host_flag, new_host_user, new_host)
+              } catch (Exception e) {
+                echo "Maybe the cNF crashed! Let it go to retrieve logs"
+              }
 
               sh "sleep 5"
               try {
@@ -494,6 +510,7 @@ pipeline {
               }
               sh "sleep 5"
 
+              // Retrieve all logs and PCAP files
               myShCmd('docker cp cicd-oai-hss:/openair-hss/hss_check_run.log archives', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp cicd-oai-hss:/tmp/hss_check_run.pcap archives', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp cicd-oai-mme:/openair-mme/mme_check_run.log archives', new_host_flag, new_host_user, new_host)
