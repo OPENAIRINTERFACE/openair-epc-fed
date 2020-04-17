@@ -7,7 +7,7 @@
       </a>
     </td>
     <td style="border-collapse: collapse; border: none; vertical-align: center;">
-      <b><font size = "5">OpenAirInterface Core Network Docker Deployment Home Page</font></b>
+      <b><font size = "5">OpenAirInterface Core Network Docker Deployment : Configure Containers</font></b>
     </td>
   </tr>
 </table>
@@ -237,5 +237,10 @@ $ python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW
 $ docker cp ./spgwu-cfg.sh prod-oai-spgwu-tiny:/openair-spgwu-tiny
 $ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"
 ```
+
+**CAUTION: IF YOU MADE A MISTAKE WHILE CONFIGURING (I.E. EXECUTING ONE OF THE `-cfg.sh` SCRIPTS IN A CONTAINER): 2 WAYS TO RECOVER:**
+
+1.  Remove all containers and redeploy. Because the template configuration files have been modified, re-running the -cfg.sh script with modified parameters is **USELESS**.
+2.  Install an editor (such as `vim`) on the container and edit manually. This is **NOT** the recommended way.
 
 You are now ready to [start the network functions](./RUN_CNF.md).
