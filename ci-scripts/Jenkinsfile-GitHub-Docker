@@ -361,7 +361,7 @@ pipeline {
               // Configuring HSS
               HSS_IP = myShRetCmd('docker exec -it cicd-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed', new_host_flag, new_host_user, new_host)
               // Using parameters for DS Tester Scenarios
-              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + Cassandra_IP + ' --hss_s6a=' + HSS_IP + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file', new_host_flag, new_host_user, new_host)
+              myShCmd('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + Cassandra_IP + ' --hss_s6a=' + HSS_IP + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=320230100000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file', new_host_flag, new_host_user, new_host)
               myShCmd('docker cp ./hss-cfg.sh cicd-oai-hss:/openair-hss/scripts', new_host_flag, new_host_user, new_host)
               myShCmdWithLog('docker exec -it cicd-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"', 'archives/hss_config.log', new_host_flag, new_host_user, new_host)
 
