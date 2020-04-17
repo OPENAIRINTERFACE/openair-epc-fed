@@ -22,6 +22,13 @@ ii  docker-ce                             5:19.03.6~3-0~ubuntu-bionic           
 ii  docker-ce-cli                         5:19.03.6~3-0~ubuntu-bionic                     amd64        Docker CLI: the open-source application container engine
 ```
 
+Also python3 (at least 3.6) shall be installed.
+
+```bash
+$ $ python3 --version
+Python 3.6.9
+```
+
 # 2. Create an account on Docker Hub #
 
 Go to [https://hub.docker.com/](https://hub.docker.com/) website and create an account.

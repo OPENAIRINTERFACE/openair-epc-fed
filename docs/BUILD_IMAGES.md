@@ -19,7 +19,7 @@ At the time of writing (2020 / 04 / 20), if you want to use the OpenAir-CN for a
 **cNF Name** | **Branch Name** | **Commit at time of writing**
 ------------ | --------------- | ------------------------------
 HSS          | `develop`       | `bca864904870d3430c0cc26b6120c88182b4919a`
-MME          | `samsumg-s10-5g-g977u-merged` | `3af7e7525e1bb5a8aeb0ed3cdacc51c79afada7a`
+MME          | `samsumg-s10-5g-g977u-merged` | `25e0bd3215a7a8727061732d6947f0ca16c02776`
 SPGW-C       | `develop`       | `a27aa529fb7e49a02e5d71ead803f03edb16688c`
 SPGW-U-TINY  | `develop`       | `1891234b4694a9670e6c9eebb2eabe62cf06c7c9`
 
