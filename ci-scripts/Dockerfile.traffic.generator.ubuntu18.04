@@ -1,0 +1,73 @@
+#/*
+# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The OpenAirInterface Software Alliance licenses this file to You under
+# * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# * except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *      http://www.openairinterface.org/?page_id=698
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *-------------------------------------------------------------------------------
+# * For more information about the OpenAirInterface (OAI) Software Alliance:
+# *      contact@openairinterface.org
+# */
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface SMF service
+#   Valid for Ubuntu-18.04 (bionic)
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM ubuntu:bionic as trf-gen-builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+    build-essential \
+    wget \
+    libpthread-stubs0-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /
+RUN wget --tries=3 https://iperf.fr/download/source/iperf-2.0.5-source.tar.gz
+RUN gzip -cd iperf-2.0.5-source.tar.gz | tar -xvf -
+
+WORKDIR /iperf-2.0.5
+RUN sed -i -e "s@#include <math@//#include <math@" include/headers.h
+RUN ./configure
+RUN make
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM ubuntu:bionic as trf-gen
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+    psmisc \
+    net-tools \
+    tshark \
+    iperf \
+    iproute2 \
+    iputils-ping \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /iperf-2.0.5/bin
+COPY --from=trf-gen-builder /iperf-2.0.5/src/iperf .
+
+WORKDIR /iperf-2.0.5
+
+
