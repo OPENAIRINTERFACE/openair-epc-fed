@@ -88,5 +88,8 @@ $ zip -r -qq docker_files.zip archives
 
 After a few hours of running, we see that MME crashes (refusing to attach UE).
 
-Just stop, start MME, SPGW-*.
+Just stop, start MME, SPGW-\*.
+
+You are ready to [generate some traffic](./GENERATE_TRAFFIC.md).
+
 
