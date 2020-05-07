@@ -30,7 +30,7 @@
 $ docker network create --attachable --subnet 192.168.61.192/26 --ip-range 192.168.61.192/26 prod-oai-public-net
 ```
 
-Once again we choose an idle IP range in our network. Please change to proper value in your environment.
+Once again we chose an **IDLE** IP range in our network. **Please change to proper value in your environment.**
 
 In the servers that are hosting the eNB(s) and/or gNB(s), create IP route(s):
 
@@ -42,8 +42,9 @@ sudo ip route add 192.168.61.192/26 via 192.168.18.197 dev bond0
 sudo ip route add 192.168.61.192/26 via 192.168.18.197 dev p1p1
 ```
 
-Where `192.168.18.197` is the IP address of the Docker Host
-Where `bond0` or `p1p1` are the NIC of the eNB/gNB server(s).
+- Where `192.168.18.197` is the IP address of the **Docker Host**
+- Where `bond0` is the **Network Interface Controller(NIC)** of the eNB server (minimassive in our case).
+- Where `p1p1` is the **NIC** of the gNB server (mozart in our case).
 
 # 2. Deploy the containers #
 
@@ -103,30 +104,23 @@ DEBUG:cassandra.cluster:Shutting down control connection
 vhss.mmeidentity truncated
 vhss.mmeidentity_host truncated
 3 mme-isdn mme.openairinterface.org openairinterface.org 1
-....
-Generating a RSA private key
-.................................................................................+++++
-.....................+++++
+Generating a 1024 bit RSA private key
+............++++++
+.++++++
 writing new private key to 'cakey.pem'
 -----
-Generating RSA private key, 1024 bit long modulus (2 primes)
-....................................................+++++
-........................................+++++
-e is 65537 (0x010001)
-Using configuration from /usr/lib/ssl/openssl.cnf
-###########################################################
-# The following lines in error are OK
-Can't open ./demoCA/index.txt.attr for reading, No such file or directory
-140684118282688:error:02001002:system library:fopen:No such file or directory:../crypto/bio/bss_file.c:72:fopen('./demoCA/index.txt.attr','r')
-140684118282688:error:2006D080:BIO routines:BIO_new_file:no such file:../crypto/bio/bss_file.c:79:
-###########################################################
+Generating RSA private key, 1024 bit long modulus
+...........++++++
+..............++++++
+e is 65537 (0x10001)
+Using configuration from openssl.cnf
 Check that the request matches the signature
 Signature ok
 Certificate Details:
         Serial Number: 1 (0x1)
         Validity
-            Not Before: Apr 10 17:08:34 2020 GMT
-            Not After : Apr 10 17:08:34 2021 GMT
+            Not Before: May  6 08:40:46 2020 GMT
+            Not After : May  6 08:40:46 2021 GMT
         Subject:
             countryName               = FR
             stateOrProvinceName       = BdR
@@ -134,16 +128,16 @@ Certificate Details:
             organizationalUnitName    = Tests
             commonName                = hss.openairinterface.org
         X509v3 extensions:
-            X509v3 Basic Constraints:
+            X509v3 Basic Constraints: 
                 CA:FALSE
-            Netscape Comment:
+            Netscape Comment: 
                 OpenSSL Generated Certificate
-            X509v3 Subject Key Identifier:
-                D6:1A:46:9D:69:91:58:D2:C7:2C:CC:D8:91:68:68:DF:FA:D6:A1:1D
-            X509v3 Authority Key Identifier:
-                keyid:B0:54:5F:E4:37:79:B3:F3:5A:C1:33:75:8E:93:A1:B6:61:A1:A3:CF
+            X509v3 Subject Key Identifier: 
+                69:0D:71:40:8F:9B:9E:E4:00:E0:A1:22:70:26:FF:41:87:D1:7F:41
+            X509v3 Authority Key Identifier: 
+                keyid:A2:19:0F:23:E0:50:DF:D2:09:72:2F:BE:2B:7D:8B:15:09:7F:3B:F0
 
-Certificate is to be certified until Apr 10 17:08:34 2021 GMT (365 days)
+Certificate is to be certified until May  6 08:40:46 2021 GMT (365 days)
 
 Write out database with 1 new entries
 Data Base Updated
@@ -161,36 +155,27 @@ $ python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --hss_s
 $ docker cp ./mme-cfg.sh prod-oai-mme:/openair-mme/scripts
 $ docker exec -it prod-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"
 ifconfig lo:s10 127.0.0.10 up --> OK
-####################################
-### THIS IS NORMAL
 File /openair-mme/etc/mme.cert.pem not found
 MME S6A: Did not find valid certificate in /openair-mme/etc
-####################################
 MME S6A: generating new certificate in /openair-mme/etc...
 Creating MME certificate for user 'mme.openairinterface.org'
-Generating a RSA private key
-.....+++++
-....+++++
+Generating a 1024 bit RSA private key
+.............++++++
+......++++++
 writing new private key to 'mme.cakey.pem'
 -----
-Generating RSA private key, 1024 bit long modulus (2 primes)
-..............+++++
-.................+++++
-e is 65537 (0x010001)
-Using configuration from /usr/lib/ssl/openssl.cnf
-####################################
-### THIS IS NORMAL
-Can't open ./demoCA/index.txt.attr for reading, No such file or directory
-140419321815488:error:02001002:system library:fopen:No such file or directory:../crypto/bio/bss_file.c:72:fopen('./demoCA/index.txt.attr','r')
-140419321815488:error:2006D080:BIO routines:BIO_new_file:no such file:../crypto/bio/bss_file.c:79:
-####################################
+Generating RSA private key, 1024 bit long modulus
+.....++++++
+............++++++
+e is 65537 (0x10001)
+Using configuration from ./openssl.cnf
 Check that the request matches the signature
 Signature ok
 Certificate Details:
         Serial Number: 1 (0x1)
         Validity
-            Not Before: Apr 10 17:08:42 2020 GMT
-            Not After : Apr 10 17:08:42 2021 GMT
+            Not Before: May  6 08:40:47 2020 GMT
+            Not After : May  6 08:40:47 2021 GMT
         Subject:
             countryName               = FR
             stateOrProvinceName       = PACA
@@ -198,20 +183,19 @@ Certificate Details:
             organizationalUnitName    = CM
             commonName                = mme.openairinterface.org
         X509v3 extensions:
-            X509v3 Basic Constraints:
+            X509v3 Basic Constraints: 
                 CA:FALSE
-            Netscape Comment:
+            Netscape Comment: 
                 OpenSSL Generated Certificate
-            X509v3 Subject Key Identifier:
-                78:13:2C:26:A0:53:D9:5D:0C:B9:AF:90:B6:20:15:59:34:5F:32:0A
-            X509v3 Authority Key Identifier:
-                keyid:4A:08:98:D8:33:12:49:E9:FE:C6:59:AF:71:65:C5:8B:6B:71:98:9E
+            X509v3 Subject Key Identifier: 
+                E1:16:17:9E:E5:5C:A5:E5:37:D7:4D:F1:F2:E2:2C:C1:56:85:1E:EE
+            X509v3 Authority Key Identifier: 
+                keyid:ED:79:6C:BE:02:7D:85:9C:7C:FF:55:7E:26:0C:0E:2B:1A:D7:EB:A4
 
-Certificate is to be certified until Apr 10 17:08:42 2021 GMT (365 days)
+Certificate is to be certified until May  6 08:40:47 2021 GMT (365 days)
 
 Write out database with 1 new entries
 Data Base Updated
-/openair-mme/scripts
 MME S6A: Found valid certificate in /openair-mme/etc
 ```
 

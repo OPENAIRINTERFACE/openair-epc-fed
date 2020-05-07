@@ -25,8 +25,26 @@ ii  docker-ce-cli                         5:19.03.6~3-0~ubuntu-bionic           
 Also python3 (at least 3.6) shall be installed.
 
 ```bash
-$ $ python3 --version
+$ python3 --version
 Python 3.6.9
+```
+
+**CAUTION: do not forget to add your username to the `docker` group**
+
+Otherwise you will have to run in `sudo` mode.
+
+```bash
+$ sudo usermod -a -G docker myusername
+```
+
+On Centos 7.7 host:
+
+```bash
+$ sudo yum install -y yum-utils
+$ sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+$ sudo yum install docker-ce docker-ce-cli containerd.io
+$ sudo systemctl start docker
+$ docker info
 ```
 
 # 2. Create an account on Docker Hub #
@@ -35,7 +53,9 @@ Go to [https://hub.docker.com/](https://hub.docker.com/) website and create an a
 
 # 3. Pull base images #
 
-We need 2 base images: `ubuntu:bionic` and `cassandra:2.1`
+* Ubuntu  version: We need 2 base images: `ubuntu:bionic` and `cassandra:2.1`
+* CentOS7 version: We need 3 base images: `centos:7`, `centos:8` and `cassandra:2.1`
+* CentOS8 version: We need 2 base images: `centos:8` and `cassandra:2.1`
 
 First log with your Docker Hub credentials.
 
@@ -48,8 +68,25 @@ Password:
 
 Then pull base images.
 
+On a Ubuntu18.04 host:
+
 ```bash
 $ docker pull ubuntu:bionic
+$ docker pull cassandra:2.1
+```
+
+On a Centos 7.7 host:
+
+```bash
+$ docker pull centos:7
+$ docker pull centos:8
+$ docker pull cassandra:2.1
+```
+
+On a Centos 8 host:
+
+```bash
+$ docker pull centos:8
 $ docker pull cassandra:2.1
 ```
 
@@ -63,11 +100,11 @@ $ docker logout
 
 The docker bridge might be by default on an already used IP range. That was the case in our network.
 
-So we picked a new IP range by adding a `/etc/docker/daemon.json` file:
+So we picked a **new/IDLE** IP range by adding a `/etc/docker/daemon.json` file:
 
 ```json
 {
-	"bip": "192.168.17.1/24",
+	"bip": "192.168.17.1/24"
 }
 ```
 

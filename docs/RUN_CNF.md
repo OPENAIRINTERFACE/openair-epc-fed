@@ -23,6 +23,15 @@ $ docker exec -d prod-oai-spgwc /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i 
 $ docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"
 ```
 
+On **CentOS** images, we have installed `tcpdump` instead of `tshark`:
+
+```bash
+$ docker exec -d prod-oai-hss /bin/bash -c "nohup tcpdump -f "port not 22" -i any -w /tmp/hss_check_run.pcap 2>&1 > /dev/null"
+$ docker exec -d prod-oai-mme /bin/bash -c "nohup tcpdump -f "port not 22" -i any -w /tmp/mme_check_run.pcap 2>&1 > /dev/null"
+$ docker exec -d prod-oai-spgwc /bin/bash -c "nohup tcpdump -f "port not 22" -i any -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"
+$ docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup tcpdump -f "port not 22" -i any -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"
+```
+
 **THE ORDER OF LAUNCH MATTERS.**
 
 ```bash
@@ -38,10 +47,10 @@ $ docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c .
 # 2. Stopping #
 
 ```bash
-$ docker exec -it prod-oai-hss /bin/bash -c "killall --signal SIGINT oai_hss tshark"
-$ docker exec -it prod-oai-mme /bin/bash -c "killall --signal SIGINT oai_mme tshark"
-$ docker exec -it prod-oai-spgwc /bin/bash -c "killall --signal SIGINT oai_spgwc tshark"
-$ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "killall --signal SIGINT oai_spgwu tshark"
+$ docker exec -it prod-oai-hss /bin/bash -c "killall --signal SIGINT oai_hss tshark tcpdump"
+$ docker exec -it prod-oai-mme /bin/bash -c "killall --signal SIGINT oai_mme tshark tcpdump"
+$ docker exec -it prod-oai-spgwc /bin/bash -c "killall --signal SIGINT oai_spgwc tshark tcpdump"
+$ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "killall --signal SIGINT oai_spgwu tshark tcpdump"
 ```
 
 # 3. Recovering logs, config and traces #
