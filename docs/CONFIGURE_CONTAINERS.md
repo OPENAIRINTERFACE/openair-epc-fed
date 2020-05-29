@@ -27,7 +27,7 @@
 # 1. Create a Docker Bridged Network #
 
 ```bash
-$ docker network create --attachable --subnet 192.168.61.192/26 --ip-range 192.168.61.192/26 prod-oai-public-net
+$ docker network create --attachable --subnet 192.168.61.0/26 --ip-range 192.168.61.0/26 prod-oai-public-net
 ```
 
 Once again we chose an **IDLE** IP range in our network. **Please change to proper value in your environment.**
@@ -36,10 +36,13 @@ In the servers that are hosting the eNB(s) and/or gNB(s), create IP route(s):
 
 ```bash
 # On minimassive
-sudo ip route add 192.168.61.192/26 via 192.168.18.197 dev bond0
+sudo ip route add 192.168.61.0/24 via 192.168.18.197 dev bond0
 
 # On mozart
-sudo ip route add 192.168.61.192/26 via 192.168.18.197 dev p1p1
+sudo ip route add 192.168.61.0/24 via 192.168.18.197 dev nm-bond
+
+# On caracal
+sudo ip route add 192.168.61.0/24 via 192.168.18.197 dev nm-bond
 ```
 
 - Where `192.168.18.197` is the IP address of the **Docker Host**
