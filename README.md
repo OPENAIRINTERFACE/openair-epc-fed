@@ -15,7 +15,11 @@
 
   Each element implementation has its own repository. This repository is a federation of components.
 
-  Currently the purpose of this repository is mainly for CI activities. It will also host deployment tutorials.
+  Currently the purpose of this repository is mainly for CI activities.
+
+  It is also hosting some tutorials:
+
+  - [Simple Docker Deployment](./docs/DEPLOY_HOME.md)
 
 # Licence info
 
