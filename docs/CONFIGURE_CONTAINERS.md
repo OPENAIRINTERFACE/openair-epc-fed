@@ -47,17 +47,21 @@ sudo ip route add 192.168.61.0/24 via 192.168.18.197 dev nm-bond
 
 - Where `192.168.18.197` is the IP address of the **Docker Host**
 - Where `bond0` is the **Network Interface Controller(NIC)** of the eNB server (minimassive in our case).
-- Where `p1p1` is the **NIC** of the gNB server (mozart in our case).
+- Where `nm-bond` is the **NIC** of the gNB server (mozart/caracal in our case).
 
 # 2. Deploy the containers #
 
 ```bash
-$ docker run --name prod-cassandra -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch cassandra:2.1
+$ docker run --name prod-cassandra -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" \
+             -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch cassandra:2.1
 $ docker run --privileged --name prod-oai-hss -d oai-hss:production /bin/bash -c "sleep infinity"
 $ docker network connect prod-oai-public-net prod-oai-hss
-$ docker run --privileged --name prod-oai-mme --network prod-oai-public-net -d oai-mme:production /bin/bash -c "sleep infinity"
-$ docker run --privileged --name prod-oai-spgwc --network prod-oai-public-net -d oai-spgwc:production /bin/bash -c "sleep infinity"
-$ docker run --privileged --name prod-oai-spgwu-tiny --network prod-oai-public-net -d oai-spgwu-tiny:production /bin/bash -c "sleep infinity"
+$ docker run --privileged --name prod-oai-mme --network prod-oai-public-net \
+             -d oai-mme:production /bin/bash -c "sleep infinity"
+$ docker run --privileged --name prod-oai-spgwc --network prod-oai-public-net \
+             -d oai-spgwc:production /bin/bash -c "sleep infinity"
+$ docker run --privileged --name prod-oai-spgwu-tiny --network prod-oai-public-net \
+             -d oai-spgwu-tiny:production /bin/bash -c "sleep infinity"
 ```
 
 # 3. Configure the containers #
@@ -90,7 +94,11 @@ $ docker exec -it prod-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ${C
 
 ```bash
 $ HSS_IP=`docker exec -it prod-oai-hss /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed`
-$ python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${Cassandra_IP} --hss_s6a=${HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=320230100000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=1 --from_docker_file
+$ python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${Cassandra_IP} \
+          --hss_s6a=${HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com \
+          --users=200 --imsi=320230100000001 \
+          --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d \
+          --nb_mmes=1 --from_docker_file
 $ docker cp ./hss-cfg.sh prod-oai-hss:/openair-hss/scripts
 $ docker exec -it prod-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"
 INFO:root:320230100000181 181 41 0c0a34601d4f07677303652c0462535b mme.openairinterface.org 3 openairinterface.org 2683b376d1056746de3b254012908e0e 96 {"Subscription-Data":{"Access-Restriction-Data":41,"Subscriber-Status":0,"Network-Access-Mode":2,"Regional-Subscription-Zone-Code":["0x0123","0x4567","0x89AB","0xCDEF","0x1234","0x5678","0x9ABC","0xDEF0","0x2345","0x6789"],"MSISDN":"0x181","AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"APN-Configuration-Profile":{"Context-Identifier":0,"All-APN-Configurations-Included-Indicator":0,"APN-Configuration":{"Context-Identifier":0,"PDN-Type":0,"Service-Selection":"apn1.carrier.com","EPS-Subscribed-QoS-Profile":{"QoS-Class-Identifier":9,"Allocation-Retention-Priority":{"Priority-Level":15,"Pre-emption-Capability":0,"Pre-emption-Vulnerability":0}},"AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"PDN-GW-Allocation-Type":0,"MIP6-Agent-Info":{"MIP-Home-Agent-Address":["172.26.17.183"]}},"APN-Configuration":{"Context-Identifier":0,"PDN-Type":0,"Service-Selection":"apn2.carrier.com","EPS-Subscribed-QoS-Profile":{"QoS-Class-Identifier":9,"Allocation-Retention-Priority":{"Priority-Level":13,"Pre-emption-Capability":1,"Pre-emption-Vulnerability":0}},"AMBR":{"Max-Requested-Bandwidth-UL":50000000,"Max-Requested-Bandwidth-DL":100000000},"PDN-GW-Allocation-Type":0,"MIP6-Agent-Info":{"MIP-Home-Agent-Address":["172.26.17.183"]}}},"Subscribed-Periodic-RAU-TAU-Timer":0}}
@@ -154,7 +162,12 @@ Data Base Updated
 ```bash
 $ MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme`
 $ SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc`
-$ python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --hss_s6a=${HSS_IP} --mme_s6a=${MME_IP} --mme_s1c_IP=${MME_IP} --mme_s1c_name=eth0 --mme_s10_IP=${MME_IP} --mme_s10_name=eth0 --mme_s11_IP=${MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} --mcc=320 --mnc=230 --tac_list="5 6 7" --from_docker_file
+$ python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME \
+          --hss_s6a=${HSS_IP} --mme_s6a=${MME_IP} \
+          --mme_s1c_IP=${MME_IP} --mme_s1c_name=eth0 \
+          --mme_s10_IP=${MME_IP} --mme_s10_name=eth0 \
+          --mme_s11_IP=${MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
+          --mcc=320 --mnc=230 --tac_list="5 6 7" --from_docker_file
 $ docker cp ./mme-cfg.sh prod-oai-mme:/openair-mme/scripts
 $ docker exec -it prod-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"
 ifconfig lo:s10 127.0.0.10 up --> OK
@@ -208,8 +221,14 @@ and not the Docker Host IP address.
 
 ## 3.4. SPGW-C ##
 
+**CAUTION: you need to apply the correct DNS setup of your environment in order to have proper internet access when the UE is connected.**
+
+**SO replace the following YOUR_DNS_IP_ADDRESS and A_SECONDARY_DNS_IP_ADDRESS in your command line.**
+
 ```bash
-$ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com --dns1_ip=YOUR_DNS_IP_ADDRESS --dns2_ip=A_SECONDARY_DNS_IP_ADDRESS --from_docker_file
+$ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C \
+          --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com \
+          --dns1_ip=YOUR_DNS_IP_ADDRESS --dns2_ip=A_SECONDARY_DNS_IP_ADDRESS --from_docker_file
 $ docker cp ./spgwc-cfg.sh prod-oai-spgwc:/openair-spgwc
 $ docker exec -it prod-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"
 ifconfig lo:s5c 127.0.0.15 up --> OK
@@ -219,7 +238,8 @@ ifconfig lo:p5c 127.0.0.16 up --> OK
 ## 3.5. SPGW-U ##
 
 ```bash
-$ python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=${SPGW0_IP} --sxu=eth0 --s1u=eth0 --from_docker_file
+$ python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
+          --sxc_ip_addr=${SPGW0_IP} --sxu=eth0 --s1u=eth0 --from_docker_file
 $ docker cp ./spgwu-cfg.sh prod-oai-spgwu-tiny:/openair-spgwu-tiny
 $ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"
 ```
