@@ -105,28 +105,18 @@ class deployForDsTester():
         # check if there is an entrypoint
         entrypoint = re.search('entrypoint', str(res))
         if entrypoint is not None:
-            subprocess_run_w_echo('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + CICD_CASS_IP_ADDR + ' --hss_s6a=' + CI_HSS_S6A_ADDR + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file --env_for_entrypoint')
             # SDB to Cassandra will be on `eth0`
-            subprocess_run_w_echo('docker create --privileged --name cicd-oai-hss --network ci-dbn --ip ' + CICD_HSS_DBN_ADDR + ' --env-file ./hss-env.list oai-hss:' + self.tag)
+            subprocess_run_w_echo('docker run --privileged --name cicd-oai-hss --network cicd-oai-private-net --ip ' + CICD_HSS_DBN_ADDR + ' -d --entrypoint "/bin/bash" oai-hss:' + self.tag + ' -c "sleep infinity"')
             # S6A to MME will be on `eth1`
             subprocess_run_w_echo('docker network connect --ip ' + CICD_HSS_PUBLIC_ADDR + ' cicd-oai-public-net cicd-oai-hss')
-            subprocess_run_w_echo('docker start cicd-oai-hss')
-            # Recovering the config part of the entrypoint execution
-            tmpAwkFile=open('tmp.awk', 'w')
-            tmpAwkFile.write('BEGIN{ok=1}{if ($0 ~/jsonConfig/){ok=0};if(ok==1){print $0}}END{}\n')
-            tmpAwkFile.close()
-            time.sleep(3)
-            subprocess.run('docker logs cicd-oai-hss 2>&1 | awk -f tmp.awk > archives/hss_config.log', shell=True)
-            subprocess.run('rm -f tmp.awk', shell=True)
-
         else:
             # SDB to Cassandra will be on `eth0`
             subprocess_run_w_echo('docker run --privileged --name cicd-oai-hss --network cicd-oai-private-net --ip ' + CICD_HSS_DBN_ADDR + ' -d oai-hss:' + self.tag + ' /bin/bash -c "sleep infinity"')
             # S6A to MME will be on `eth1`
             subprocess_run_w_echo('docker network connect --ip ' + CICD_HSS_PUBLIC_ADDR + ' cicd-oai-public-net cicd-oai-hss')
-            subprocess_run_w_echo('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + CICD_CASS_IP_ADDR + ' --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file')
-            subprocess_run_w_echo('docker cp ./hss-cfg.sh cicd-oai-hss:/openair-hss/scripts')
-            subprocess_run_w_echo('docker exec -it cicd-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh" > archives/hss_config.log')
+        subprocess_run_w_echo('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + CICD_CASS_IP_ADDR + ' --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file')
+        subprocess_run_w_echo('docker cp ./hss-cfg.sh cicd-oai-hss:/openair-hss/scripts')
+        subprocess_run_w_echo('docker exec -it cicd-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh" > archives/hss_config.log')
 
     def deployMME(self):
         res = ''
@@ -139,21 +129,13 @@ class deployForDsTester():
         # check if there is an entrypoint
         entrypoint = re.search('entrypoint', str(res))
         if entrypoint is not None:
-            subprocess_run_w_echo('python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --mme_s6a=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_name=eth0 --mme_s10_IP=127.0.0.10 --mme_s10_name=lo:s10 --mme_s11_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + CICD_SPGWC_PUBLIC_ADDR + ' --from_docker_file --env_for_entrypoint')
-            subprocess_run_w_echo('docker run --privileged --name cicd-oai-mme --network ci-s6a --ip ' + CICD_MME_PUBLIC_ADDR + ' --env-file ./mme-env.list oai-mme:' + self.tag)
-            # Recovering the config part of the entrypoint execution
-            tmpAwkFile=open('tmp.awk', 'w')
-            tmpAwkFile.write('BEGIN{ok=1}{if ($0 ~/Initializing shared logging/){ok=0};if(ok==1){print $0}}END{}\n')
-            tmpAwkFile.close()
-            time.sleep(3)
-            subprocess.run('docker logs cicd-oai-mme 2>&1 | awk -f tmp.awk > archives/mme_config.log', shell=True)
-            subprocess.run('rm -f tmp.awk', shell=True)
+            subprocess_run_w_echo('docker run --privileged --name cicd-oai-mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' -d --entrypoint "/bin/bash" oai-mme:' + self.tag + ' -c "sleep infinity"')
         else:
             subprocess_run_w_echo('docker run --privileged --name cicd-oai-mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' -d oai-mme:' + self.tag + ' /bin/bash -c "sleep infinity"')
-            subprocess_run_w_echo('python3 ./ci-scripts/generate_mme_config_script.py --kind=MME --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --mme_s6a=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_name=eth0 --mme_s10_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s10_name=eth0 --mme_s11_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + CICD_SPGWC_PUBLIC_ADDR + ' --mme_gid=455 --mme_code=5 --mcc=320 --mnc=230 --tai_list="5556 506 301,5556 505 300,1235 203 101,1235 202 100,5557 506 301,5557 505 300,1236 203 101,1236 202 100" --realm=openairinterface.org --prefix=/openair-mme/etc --from_docker_file')
-            subprocess_run_w_echo('docker cp ./mme-cfg.sh cicd-oai-mme:/openair-mme/scripts')
-            subprocess_run_w_echo('docker exec -it cicd-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh" > archives/mme_config.log')
-            subprocess_run_w_echo('docker cp mme.conf cicd-oai-mme:/openair-mme/etc')
+        subprocess_run_w_echo('python3 ./ci-scripts/generate_mme_config_script.py --kind=MME --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --mme_s6a=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_name=eth0 --mme_s10_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s10_name=eth0 --mme_s11_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + CICD_SPGWC_PUBLIC_ADDR + ' --mme_gid=455 --mme_code=5 --mcc=320 --mnc=230 --tai_list="5556 506 301,5556 505 300,1235 203 101,1235 202 100,5557 506 301,5557 505 300,1236 203 101,1236 202 100" --realm=openairinterface.org --prefix=/openair-mme/etc --from_docker_file')
+        subprocess_run_w_echo('docker cp ./mme-cfg.sh cicd-oai-mme:/openair-mme/scripts')
+        subprocess_run_w_echo('docker exec -it cicd-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh" > archives/mme_config.log')
+        subprocess_run_w_echo('docker cp mme.conf cicd-oai-mme:/openair-mme/etc')
 
     def deploySPGWC(self):
         res = ''
@@ -166,22 +148,13 @@ class deployForDsTester():
         # check if there is an entrypoint
         entrypoint = re.search('entrypoint', str(res))
         if entrypoint is not None:
-            subprocess_run_w_echo('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth1 --from_docker_file --env_for_entrypoint')
-            subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ./spgwc-env.list oai-spgwc:' + self.tag)
-            # Recovering the config part of the entrypoint execution
-            tmpAwkFile=open('tmp.awk', 'w')
-            tmpAwkFile.write('BEGIN{ok=1}{if ($0 ~/Options parsed/){ok=0};if(ok==1){print $0}}END{}\n')
-            tmpAwkFile.close()
-            time.sleep(3)
-            subprocess.run('docker logs cicd-oai-spgwc 2>&1 | awk -f tmp.awk > archives/spgwc_config.log', shell=True)
-            subprocess.run('rm -f tmp.awk', shell=True)
-
+            subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' -d --entrypoint "/bin/bash" oai-spgwc:' + self.tag + ' -c "sleep infinity"')
         else:
             subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' -d oai-spgwc:' + self.tag + ' /bin/bash -c "sleep infinity"')
-            subprocess_run_w_echo('python3 ci-scripts/generate_spgwc_config_script.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --prefix=/openair-spgwc/etc --dns1=192.168.18.129 --dns2=8.8.8.8 --apn_list="apn1.carrier.com apn2.carrier.com" --pdn_list="12.0.0.0/24 12.1.0.0/24" --s5p5_production --from_docker_file')
-            subprocess_run_w_echo('docker cp ./spgwc-cfg.sh cicd-oai-spgwc:/openair-spgwc')
-            subprocess_run_w_echo('docker exec -it cicd-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh" > archives/spgwc_config.log')
-            subprocess_run_w_echo('docker cp ./spgw_c.conf cicd-oai-spgwc:/openair-spgwc/etc')
+        subprocess_run_w_echo('python3 ci-scripts/generate_spgwc_config_script.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --prefix=/openair-spgwc/etc --dns1=192.168.18.129 --dns2=8.8.8.8 --apn_list="apn1.carrier.com apn2.carrier.com" --pdn_list="12.0.0.0/24 12.1.0.0/24" --s5p5_production --from_docker_file')
+        subprocess_run_w_echo('docker cp ./spgwc-cfg.sh cicd-oai-spgwc:/openair-spgwc')
+        subprocess_run_w_echo('docker exec -it cicd-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh" > archives/spgwc_config.log')
+        subprocess_run_w_echo('docker cp ./spgw_c.conf cicd-oai-spgwc:/openair-spgwc/etc')
 
     def deploySPGWU(self):
         res = ''
@@ -194,21 +167,12 @@ class deployForDsTester():
         # check if there is an entrypoint
         entrypoint = re.search('entrypoint', str(res))
         if entrypoint is not None:
-            subprocess_run_w_echo('python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=' + CICD_SPGWC_PUBLIC_ADDR + ' --sxu=eth0 --s1u=eth0 --from_docker_file --env_for_entrypoint')
-            subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' --env-file ./spgwu-env.list oai-spgwu-tiny:' + self.tag)
-            # Recovering the config part of the entrypoint execution
-            tmpAwkFile=open('tmp.awk', 'w')
-            tmpAwkFile.write('BEGIN{ok=1}{if ($0 ~/Options parsed/){ok=0};if(ok==1){print $0}}END{}\n')
-            tmpAwkFile.close()
-            time.sleep(3)
-            subprocess.run('docker logs cicd-oai-spgwu-tiny 2>&1 | awk -f tmp.awk > archives/spgwu_config.log', shell=True)
-            subprocess.run('rm -f tmp.awk', shell=True)
-
+            subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' -d --entrypoint "/bin/bash" oai-spgwu-tiny:' + self.tag + ' -c "sleep infinity"')
         else:
             subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' -d oai-spgwu-tiny:' + self.tag + ' /bin/bash -c "sleep infinity"')
-            subprocess_run_w_echo('python3 ci-scripts/generate_spgwu-tiny_config_script.py --kind=SPGW-U --sxc_ip_addr=' + CICD_SPGWC_PUBLIC_ADDR + ' --sxu=eth0 --s1u=eth0 --sgi=eth0 --pdn_list="12.0.0.0/24 12.1.0.0/24" --prefix=/openair-spgwu-tiny/etc --from_docker_file')
-            subprocess_run_w_echo('docker cp ./spgw_u.conf cicd-oai-spgwu-tiny:/openair-spgwu-tiny/etc')
-            subprocess_run_w_echo('touch archives/spgwu_config.log')
+        subprocess_run_w_echo('python3 ci-scripts/generate_spgwu-tiny_config_script.py --kind=SPGW-U --sxc_ip_addr=' + CICD_SPGWC_PUBLIC_ADDR + ' --sxu=eth0 --s1u=eth0 --sgi=eth0 --pdn_list="12.0.0.0/24 12.1.0.0/24" --prefix=/openair-spgwu-tiny/etc --from_docker_file')
+        subprocess_run_w_echo('docker cp ./spgw_u.conf cicd-oai-spgwu-tiny:/openair-spgwu-tiny/etc')
+        subprocess_run_w_echo('touch archives/spgwu_config.log')
 
     def removeAllContainers(self):
         try:
