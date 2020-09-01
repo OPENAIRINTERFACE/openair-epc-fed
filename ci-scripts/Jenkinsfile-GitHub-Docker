@@ -370,7 +370,6 @@ pipeline {
         lock (ds_tester_ci_resource) {
           script {
             myShCmd('cd /home/oaici/CI-dev-ops-cn && git clean -x -d -f > /dev/null', new_host_flag, new_host_user, new_host)
-            myShCmd('mkdir /tmp/CI-CN-FED/DS-TEST-RESULTS', new_host_flag, new_host_user, new_host)
             myShCmdWithLog('cd /home/oaici/CI-dev-ops-cn/scripts && CI_ENV=True SRC_BASE_DIR=/tmp/CI-CN-FED ./run-4gc.bash -pt --shark --detach --get-results --4g', 'archives/run-4g-dstester.log', new_host_flag, new_host_user, new_host)
             myShCmd('python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL, new_host_flag, new_host_user, new_host)
           }
