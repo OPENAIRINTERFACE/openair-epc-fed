@@ -504,7 +504,7 @@ def myShCmd(cmd, flag, user, host) {
 
 def myShCmdWithLog(cmd, logFile, flag, user, host) {
   if (flag) {
-    sh "ssh -t -t ${user}@${host} 'cd /tmp/CI-CN-FED && ${cmd}' 2>&1 > /tmp/CI-CN-FED/${logFile}" 
+    sh "ssh -t -t ${user}@${host} 'cd /tmp/CI-CN-FED && ${cmd}' > ${logFile} 2>&1"
   } else {
     sh "${cmd} > ${logFile} 2>&1"
   }
