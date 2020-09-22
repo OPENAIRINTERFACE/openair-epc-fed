@@ -98,9 +98,21 @@ $ docker logout
 
 # 4. Network Configuration #
 
-The docker bridge might be by default on an already used IP range. That was the case in our network.
+**CAUTION: THIS FIRST STEP IS MANDATORY**
 
-So we picked a **new/IDLE** IP range by adding a `/etc/docker/daemon.json` file:
+Based on this [recommendation](https://docs.docker.com/network/bridge/#enable-forwarding-from-docker-containers-to-the-outside-world):
+
+```bash
+$ sudo sysctl net.ipv4.conf.all.forwarding=1
+$ sudo iptables -P FORWARD ACCEPT
+```
+
+**CAUTION: THIS SECOND STEP MAY NOT BE NEEDED IN YOUR ENVIRONMENT.**
+
+* The default docker network (ie "bridge") is on "172.17.0.0/16" range.
+* In our Eurecom private network, this IP address range is already in use.
+  - We have to change it to another IP range is free in our private network configuration.
+  - We picked a **new/IDLE** IP range by adding a `/etc/docker/daemon.json` file:
 
 ```json
 {
@@ -108,7 +120,14 @@ So we picked a **new/IDLE** IP range by adding a `/etc/docker/daemon.json` file:
 }
 ```
 
-Restart the docker daemon and check the new network configuration:
+Restart the docker daemon:
+
+```bash
+$ sudo service docker restart
+$ docker info
+```
+
+Check the new network configuration:
 
 ```bash
 $ docker network inspect bridge
@@ -130,13 +149,6 @@ $ docker network inspect bridge
             ]
         },
 ....
-```
-
-Based on this [recommendation](https://docs.docker.com/network/bridge/#enable-forwarding-from-docker-containers-to-the-outside-world):
-
-```bash
-$ sudo sysctl net.ipv4.conf.all.forwarding=1
-$ sudo iptables -P FORWARD ACCEPT
 ```
 
 You are ready to [build the images](./BUILD_IMAGES.md).
