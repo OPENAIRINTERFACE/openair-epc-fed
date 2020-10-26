@@ -24,6 +24,8 @@
     4.  [SPGW-C](#34-spgw-c)
     5.  [SPGW-U](#35-spgw-u)
 
+**CAUTION: if you are reading this page, it means you are using a version prior to 2020 week 44.**
+
 # 1. Create a Docker Bridged Network #
 
 ```bash
@@ -51,25 +53,17 @@ sudo ip route add 192.168.61.0/24 via 192.168.18.197 dev nm-bond
 
 # 2. Deploy the containers #
 
-**CAUTION: Starting 2020 week 44, the docker images have dedicated `CMD` and entrypoint scripts to facilate Kubernetes/OpenShift deployments.**
-
-**This tutorial only replicates a manual deployment as described in previous versions of this tutorial.**
-
-This kind of deployment is useful when you want to start/stop the cNF at will, modify the configuration files if needed.
-
-If you want to deploy the cNF once for all, you may want to look at **[this other page](./DEPLOY_USING_ENTRYPOINTS.md)**.
-
 ```bash
 $ docker run --name prod-cassandra -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" \
              -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch cassandra:2.1
-$ docker run --privileged --name prod-oai-hss -d --entrypoint /bin/bash oai-hss:production -c "sleep infinity"
+$ docker run --privileged --name prod-oai-hss -d oai-hss:production /bin/bash -c "sleep infinity"
 $ docker network connect prod-oai-public-net prod-oai-hss
 $ docker run --privileged --name prod-oai-mme --network prod-oai-public-net \
-             -d --entrypoint /bin/bash oai-mme:production -c "sleep infinity"
+             -d oai-mme:production /bin/bash -c "sleep infinity"
 $ docker run --privileged --name prod-oai-spgwc --network prod-oai-public-net \
-             -d --entrypoint /bin/bash oai-spgwc:production -c "sleep infinity"
+             -d oai-spgwc:production /bin/bash -c "sleep infinity"
 $ docker run --privileged --name prod-oai-spgwu-tiny --network prod-oai-public-net \
-             -d --entrypoint /bin/bash oai-spgwu-tiny:production -c "sleep infinity"
+             -d oai-spgwu-tiny:production /bin/bash -c "sleep infinity"
 ```
 
 # 3. Configure the containers #

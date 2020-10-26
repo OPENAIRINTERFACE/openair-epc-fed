@@ -265,7 +265,7 @@ pipeline {
               hssCommit = sh returnStdout: true, script: "${cmd}"
               hssCommit = hssCommit.trim()
               echo "Rebuild HSS Temporary Image on Commit: " + hssCommit
-              myShCmd('docker build --target oai-hss --tag oai-hss:' + hssTag + ' --file component/oai-hss/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + hssBranch + '" --build-arg CI_SRC_COMMIT="' + hssCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/hss_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              myShCmd('docker build --target oai-hss --tag oai-hss:' + hssTag + ' --file component/oai-hss/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-hss > archives/hss_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -277,7 +277,7 @@ pipeline {
               mmeCommit = sh returnStdout: true, script: "${cmd}"
               mmeCommit = mmeCommit.trim()
               echo "Rebuild MME Temporary Image on Commit: " + mmeCommit
-              myShCmd('docker build --target oai-mme --tag oai-mme:' + mmeTag + ' --file component/oai-mme/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + mmeBranch + '" --build-arg CI_SRC_COMMIT="' + mmeCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/mme_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              myShCmd('docker build --target oai-mme --tag oai-mme:' + mmeTag + ' --file component/oai-mme/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-mme > archives/mme_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -289,7 +289,7 @@ pipeline {
               spgwcCommit = sh returnStdout: true, script: "${cmd}"
               spgwcCommit = spgwcCommit.trim()
               echo "Rebuild SPGW-C Temporary Image on Commit: " + spgwcCommit
-              myShCmd('docker build --target oai-spgwc --tag oai-spgwc:' + spgwcTag + ' --file component/oai-spgwc/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + spgwcBranch + '" --build-arg CI_SRC_COMMIT="' + spgwcCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/spgwc_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              myShCmd('docker build --target oai-spgwc --tag oai-spgwc:' + spgwcTag + ' --file component/oai-spgwc/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwc > archives/spgwc_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -301,7 +301,7 @@ pipeline {
               spgwuCommit = sh returnStdout: true, script: "${cmd}"
               spgwuCommit = spgwuCommit.trim()
               echo "Rebuild SPGW-U-TINY Temporary Image on Commit: " + spgwuCommit
-              myShCmd('docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:' + spgwuTag + ' --file component/oai-spgwu-tiny/ci-scripts/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" --build-arg BUILD_FOR_CI="True" --build-arg CI_SRC_BRANCH="' + spgwuBranch + '" --build-arg CI_SRC_COMMIT="' + spgwuCommit + '" --build-arg CI_DEST_BRANCH="develop" . > archives/spgwu_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              myShCmd('docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:' + spgwuTag + ' --file component/oai-spgwu-tiny/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwu-tiny > archives/spgwu_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
             }
           }
         }
