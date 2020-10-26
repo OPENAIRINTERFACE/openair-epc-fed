@@ -93,6 +93,9 @@ prod-oai-hss
 
 **TBD** : add logs command.
 
+**IMPORTANT TO KNOW: the HSS container has 2 network interfaces (with 2 different IP addresses). YOU WILL NOT BE ABLE TO PING IT FROM ANOTHER MACHINE BUT THE DOCKER HOST.**
+
+**IT MEANS YOU CANNOT PING FROM YOUR eNB server the HSS. YOU SHALL BE ABLE TO PING MME AND SPGW-U FROM YOUR e/gNB server(s).**
 
 ## 2.3. Deploying OAI-MME container ##
 
