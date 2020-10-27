@@ -14,14 +14,14 @@
 
 # 1.  Retrieve the proper code version #
 
-At the time of writing (2020 / 10 / 26), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
+At the time of writing (2020 / 10 / 27), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
 
 **cNF Name** | **Branch Name** | **Commit at time of writing**              | Ubuntu18 | CentOS7 | CentOS8
 ------------ | --------------- | ------------------------------------------ | -------- | ------- | -------
-HSS          | `develop`       | `ce88c39853883ba3febbe982379e1eabd5bf45b3` | X        | X       | X
-MME          | `develop`       | `b2be794082465d4dc3c33410af89f7bcb0f7d631` | X        | X       | X
-SPGW-C       | `develop`       | `1af175b53959ae364c38392b6936b06c889bf0d8` | X        |         | X
-SPGW-U-TINY  | `develop`       | `ed7de74cebb582a12c7d584a30e64befcf8a711b` | X        |         | X
+HSS          | `develop`       | `b55a2f24909c05b4f31ef62dacb3c059d5d54990` | X        | X       | X
+MME          | `develop`       | `d02307d162da457a6d06e9409c8a5cdc143b1fdb` | X        | X       | X
+SPGW-C       | `develop`       | `67a286bf7453b95fdf8deb9b81ae53521825c29b` | X        |         | X
+SPGW-U-TINY  | `develop`       | `083899c6047b058f9b5bc9bdee31d235646d73bc` | X        |         | X
 
 ```bash
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
