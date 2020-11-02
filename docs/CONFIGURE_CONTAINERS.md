@@ -26,13 +26,29 @@
 
 # 1. Create a Docker Bridged Network #
 
+Accessing a Docker container from the server you've deployed it on is easy.
+
+Accessing a Docker container from another server is NOT.
+
+Here is a picture of what we will be doing:
+
+![Block Diagram](./images/OAICN-Network-Deployment-Explanation.png)
+
+**The objective is to be able to ping the MME and SPGW-U containers from the eNB server(s)**.
+
+## Step 1 : create a docker network on your EPC docker host. ##
+
 ```bash
 $ docker network create --attachable --subnet 192.168.61.0/26 --ip-range 192.168.61.0/26 prod-oai-public-net
 ```
 
 Once again we chose an **IDLE** IP range in our network. **Please change to proper value in your environment.**
 
+## Step 2: create a route on your eNB/gNB server(s) ##
+
 In the servers that are hosting the eNB(s) and/or gNB(s), create IP route(s):
+
+The following are examples. **PLEASE ADAPT TO YOUR ENVIRONMENT.**
 
 ```bash
 # On minimassive
@@ -71,6 +87,44 @@ $ docker run --privileged --name prod-oai-spgwc --network prod-oai-public-net \
 $ docker run --privileged --name prod-oai-spgwu-tiny --network prod-oai-public-net \
              -d --entrypoint /bin/bash oai-spgwu-tiny:production -c "sleep infinity"
 ```
+
+## Verify your network configuration ##
+
+Let make sure your routing on the eNB server is correct.
+
+**On your EPC Docker Host:** recover the MME IP address:
+
+```bash
+$ docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme
+192.168.61.3
+```
+
+**On your eNB server:**
+
+```bash
+$ ping -c 5 192.168.61.3
+PING 192.168.61.3 (192.168.61.3) 56(84) bytes of data.
+64 bytes from 192.168.61.3: icmp_seq=1 ttl=63 time=0.306 ms
+64 bytes from 192.168.61.3: icmp_seq=2 ttl=63 time=0.269 ms
+64 bytes from 192.168.61.3: icmp_seq=3 ttl=63 time=0.234 ms
+64 bytes from 192.168.61.3: icmp_seq=4 ttl=63 time=0.266 ms
+64 bytes from 192.168.61.3: icmp_seq=5 ttl=63 time=0.233 ms
+
+--- 192.168.61.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 129ms
+rtt min/avg/max/mdev = 0.233/0.261/0.306/0.032 ms
+```
+
+Same thing for SPGW-U IP address:
+
+```bash
+$ ping -c 5 192.168.61.5
+...
+5 packets transmitted, 5 received, 0% packet loss, time 129ms
+...
+```
+
+**NOTE: YOU CAN TRY TO PING THE HSS CONTAINER BUT IT WON'T WORK.**
 
 # 3. Configure the containers #
 
