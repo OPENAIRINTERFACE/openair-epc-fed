@@ -70,4 +70,4 @@ COPY --from=trf-gen-builder /iperf-2.0.5/src/iperf .
 
 WORKDIR /iperf-2.0.5
 
-
+CMD ["sleep", "infinity"]

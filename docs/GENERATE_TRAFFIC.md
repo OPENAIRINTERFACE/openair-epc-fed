@@ -20,7 +20,51 @@ I will not explain here:
 
 Once your UE is attached, you can either see if you have internet connection.
 
-But us for testing purposes (not use our Internet bandwidth) we prefer to manage traffic internally.
+# 0. Common issues if your UE is connected but without any access to Internet #
+
+## 0.1. Have you properly configured the DNS in SPGW-C ? ##
+
+See [SPGWC Configure Section](./CONFIGURE_CONTAINERS.md#34-spgw-c)
+
+**YOUR_DNS_IP_ADDRESS** shall have a correct value.
+
+from your EPC **Docker Host**:
+
+```bash
+$ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.21.179  0.0.0.0         UG    300    0        0 ens3
+...
+```
+
+In this example, the DNS IP address is `192.168.21.179`.
+
+## 0.2. May you need to enable "NATTING" on the UE pool ##
+
+See [SPGWU Configure Section](./CONFIGURE_CONTAINERS.md#35-spgw-u)
+
+Add the `--network_ue_nat_option=yes` option to the python command.
+
+```bash
+$ python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
+          ...
+          --network_ue_nat_option=yes
+```
+
+## 0.3. Last trick: enable PUSH-PROTOCOL on SPGW-C. ##
+
+See [SPGWC Configure Section](./CONFIGURE_CONTAINERS.md#34-spgw-c)
+
+Add the `--push_protocol_option=yes` option to the python command.
+
+```bash
+$ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C \
+          ...
+          --push_protocol_option=yes
+```
+
+**But us for testing purposes (not use our Internet bandwidth) we prefer to manage traffic internally.**
 
 # 1. Build a traffic generator image #
 
@@ -36,7 +80,7 @@ trf-gen         production             bfdfe4e7ac51        1 minute ago      217
 # 2. Instantiate a container #
 
 ```bash
-$ docker run --privileged --name prod-trf-gen --network prod-oai-public-net -d trf-gen:production /bin/bash -c "sleep infinity"
+$ docker run --privileged --name prod-trf-gen --network prod-oai-public-net -d trf-gen:production
 ```
 
 # 3. Redirect the traffic from the UE Allocation pool(s) to SPGW-U container #
