@@ -22,6 +22,7 @@
 
 import os
 import re
+import subprocess
 import sys
 import ipaddress
 
@@ -86,7 +87,18 @@ class mmeConfigGen():
 		mme_conf_file.write('  S6A :\n')
 		mme_conf_file.write('  {\n')
 		mme_conf_file.write('    S6A_CONF = "'+self.prefix+'/mme_fd.conf";\n')
-		mme_conf_file.write('    HSS_HOSTNAME = "hss"; # THE HSS HOSTNAME (not HSS FQDN)\n')
+		# Check if mme.conf requires HSS HOSTNAME or FQDN
+		cmd = 'grep HSS_HOSTNAME component/oai-mme/etc/mme.conf'
+		grepRet = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+		if grepRet is not None:
+			isHostName = re.search('@HSS_HOSTNAME@', grepRet.strip())
+			if isHostName is not None:
+				mme_conf_file.write('    HSS_HOSTNAME = "hss"; # THE HSS HOSTNAME (not HSS FQDN)\n')
+			isFQDN = re.search('@HSS_FQDN@', grepRet.strip())
+			if isFQDN is not None:
+				mme_conf_file.write('    HSS_HOSTNAME = "hss.' + self.realm + '"; # THE HSS FQDN\n')
+		else:
+			mme_conf_file.write('    HSS_HOSTNAME = "hss"; # THE HSS HOSTNAME (not HSS FQDN)\n')
 		mme_conf_file.write('  };\n')
 		mme_conf_file.write('  SCTP :\n')
 		mme_conf_file.write('  {\n')
