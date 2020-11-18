@@ -97,6 +97,7 @@ class mmeConfigGen():
 			isFQDN = re.search('@HSS_FQDN@', grepRet.strip())
 			if isFQDN is not None:
 				mme_conf_file.write('    HSS_HOSTNAME = "hss.' + self.realm + '"; # THE HSS FQDN\n')
+				mme_conf_file.write('    HSS_REALM    = "' + self.realm + '"; # HSS REALM\n')
 		else:
 			mme_conf_file.write('    HSS_HOSTNAME = "hss"; # THE HSS HOSTNAME (not HSS FQDN)\n')
 		mme_conf_file.write('  };\n')
