@@ -88,7 +88,7 @@ class mmeConfigGen():
 		mme_conf_file.write('  {\n')
 		mme_conf_file.write('    S6A_CONF = "'+self.prefix+'/mme_fd.conf";\n')
 		# Check if mme.conf requires HSS HOSTNAME or FQDN
-		cmd = 'grep HSS_HOSTNAME component/oai-mme/etc/mme.conf'
+		cmd = 'grep HSS_HOSTNAME component/oai-mme/etc/mme.conf || true'
 		grepRet = subprocess.check_output(cmd, shell=True, universal_newlines=True)
 		if grepRet is not None:
 			isHostName = re.search('@HSS_HOSTNAME@', grepRet.strip())

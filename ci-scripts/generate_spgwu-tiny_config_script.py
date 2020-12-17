@@ -22,6 +22,7 @@
 
 import os
 import re
+import subprocess
 import sys
 
 class spgwuConfigGen():
@@ -70,6 +71,13 @@ class spgwuConfigGen():
 		conf_file.write('            #SCHED_PRIORITY = 84;\n')
 		conf_file.write('        #};\n')
 		conf_file.write('    #};\n')
+		# check if PRIO and THREAD numbers are needed
+		cmd = 'grep THREAD_S1U_PRIO component/oai-spgwu-tiny/etc/spgw_u.conf || true'
+		grepRet = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+		if grepRet is not None:
+			threadPrioNeeded = True
+		else:
+			threadPrioNeeded = False
 		conf_file.write('    INTERFACES :\n')
 		conf_file.write('    {\n')
 		conf_file.write('        S1U_S12_S4_UP :\n')
@@ -78,12 +86,21 @@ class spgwuConfigGen():
 		conf_file.write('            INTERFACE_NAME         = "'+self.s1u_name+'";  # STRING, interface name, YOUR NETWORK CONFIG HERE\n')
 		conf_file.write('            IPV4_ADDRESS           = "read";                                    # STRING, CIDR or "read to let app read interface configured IP address\n')
 		conf_file.write('            #PORT                   = 2152;                                     # Default is 2152\n')
-		conf_file.write('            #SCHED_PARAMS :\n')
-		conf_file.write('            #{\n')
-		conf_file.write('                #CPU_ID       = 2;\n')
-		conf_file.write('                #SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
-		conf_file.write('                #SCHED_PRIORITY = 98;\n')
-		conf_file.write('            #};\n')
+		if threadPrioNeeded:
+			conf_file.write('            SCHED_PARAMS :\n')
+			conf_file.write('            {\n')
+			conf_file.write('                #CPU_ID       = 2;\n')
+			conf_file.write('                SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
+			conf_file.write('                SCHED_PRIORITY = 80;\n')
+			conf_file.write('                POOL_SIZE = 8;\n')
+			conf_file.write('            };\n')
+		else:
+			conf_file.write('            #SCHED_PARAMS :\n')
+			conf_file.write('            #{\n')
+			conf_file.write('                #CPU_ID       = 2;\n')
+			conf_file.write('                #SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
+			conf_file.write('                #SCHED_PRIORITY = 98;\n')
+			conf_file.write('            #};\n')
 		conf_file.write('        };\n')
 		conf_file.write('        SX :\n')
 		conf_file.write('        {\n')
@@ -91,35 +108,67 @@ class spgwuConfigGen():
 		conf_file.write('            INTERFACE_NAME         = "'+self.sxu_name+'"; # STRING, interface name\n')
 		conf_file.write('            IPV4_ADDRESS           = "read";                        # STRING, CIDR or "read" to let app read interface configured IP address\n')
 		conf_file.write('            #PORT                   = 8805;                         # Default is 8805\n')
-		conf_file.write('            #SCHED_PARAMS :\n')
-		conf_file.write('            #{\n')
-		conf_file.write('                #CPU_ID       = 1;\n')
-		conf_file.write('                #SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
-		conf_file.write('                #SCHED_PRIORITY = 95;\n')
-		conf_file.write('            #};\n')
+		if threadPrioNeeded:
+			conf_file.write('            SCHED_PARAMS :\n')
+			conf_file.write('            {\n')
+			conf_file.write('                #CPU_ID       = 1;\n')
+			conf_file.write('                SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
+			conf_file.write('                SCHED_PRIORITY = 81;\n')
+			conf_file.write('                POOL_SIZE = 1;\n')
+			conf_file.write('            };\n')
+		else:
+			conf_file.write('            #SCHED_PARAMS :\n')
+			conf_file.write('            #{\n')
+			conf_file.write('                #CPU_ID       = 1;\n')
+			conf_file.write('                #SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
+			conf_file.write('                #SCHED_PRIORITY = 95;\n')
+			conf_file.write('            #};\n')
 		conf_file.write('        };\n')
 		conf_file.write('        SGI :\n')
 		conf_file.write('        {\n')
 		conf_file.write('           # No config to set, the software will set the SGi interface to the interface used for the default route.\n')
 		conf_file.write('            INTERFACE_NAME         = "'+self.sgi_name+'"; # STRING, interface name or "default_gateway"\n')
 		conf_file.write('            IPV4_ADDRESS           = "read";                         # STRING, CIDR or "read" to let app read interface configured IP address\n')
-		conf_file.write('            #SCHED_PARAMS :\n')
-		conf_file.write('            #{\n')
-		conf_file.write('                #CPU_ID       = 3;\n')
-		conf_file.write('                #SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
-		conf_file.write('                #SCHED_PRIORITY = 98;\n')
-		conf_file.write('            #};\n')
+		if threadPrioNeeded:
+			conf_file.write('            SCHED_PARAMS :\n')
+			conf_file.write('            {\n')
+			conf_file.write('                #CPU_ID       = 3;\n')
+			conf_file.write('                SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
+			conf_file.write('                SCHED_PRIORITY = 80;\n')
+			conf_file.write('                POOL_SIZE = 8;\n')
+			conf_file.write('            };\n')
+		else:
+			conf_file.write('            #SCHED_PARAMS :\n')
+			conf_file.write('            #{\n')
+			conf_file.write('                #CPU_ID       = 3;\n')
+			conf_file.write('                #SCHED_POLICY = "SCHED_FIFO"; # Values in { SCHED_OTHER, SCHED_IDLE, SCHED_BATCH, SCHED_FIFO, SCHED_RR }\n')
+			conf_file.write('                #SCHED_PRIORITY = 98;\n')
+			conf_file.write('            #};\n')
 		conf_file.write('        };\n')
 		conf_file.write('    };\n')
-		conf_file.write('    PDN_NETWORK_LIST  = (\n')
-		for pdn in pdns[ 0:len(pdns)-1 ]:
-			conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "no";},\n')
-		pdn = pdns[len(pdns) - 1]
-		conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "no";}\n')
-		conf_file.write('                    );\n')
+		if threadPrioNeeded:
+			conf_file.write('    SNAT = "no";\n')
+			conf_file.write('    PDN_NETWORK_LIST  = (\n')
+			# Only one is now supported
+			pdn = pdns[0]
+			conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'";}\n')
+			conf_file.write('                    );\n')
+		else:
+			conf_file.write('    PDN_NETWORK_LIST  = (\n')
+			for pdn in pdns[ 0:len(pdns)-1 ]:
+				conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "no";},\n')
+			pdn = pdns[len(pdns) - 1]
+			conf_file.write('                      {NETWORK_IPV4 = "'+pdn+'"; SNAT = "no";}\n')
+			conf_file.write('                    );\n')
+
 		conf_file.write('    SPGW-C_LIST = (\n')
 		conf_file.write('         {IPV4_ADDRESS="' + self.spgwc0_ip_addr + '" ;}\n')
 		conf_file.write('    );\n')
+		if threadPrioNeeded:
+			conf_file.write('    NON_STANDART_FEATURES :\n')
+			conf_file.write('    {\n')
+			conf_file.write('        BYPASS_UL_PFCP_RULES = "no";\n')
+			conf_file.write('    };\n')
 		conf_file.write('};\n')
 		conf_file.close()
 
