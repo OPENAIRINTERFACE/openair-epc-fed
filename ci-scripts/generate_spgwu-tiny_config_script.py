@@ -74,10 +74,11 @@ class spgwuConfigGen():
 		# check if PRIO and THREAD numbers are needed
 		cmd = 'grep THREAD_S1U_PRIO component/oai-spgwu-tiny/etc/spgw_u.conf || true'
 		grepRet = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+		threadPrioNeeded = False
 		if grepRet is not None:
-			threadPrioNeeded = True
-		else:
-			threadPrioNeeded = False
+			isPrioNeeded = re.search('@THREAD_S1U_PRIO@', grepRet.strip())
+			if isPrioNeeded is not None:
+				threadPrioNeeded = True
 		conf_file.write('    INTERFACES :\n')
 		conf_file.write('    {\n')
 		conf_file.write('        S1U_S12_S4_UP :\n')
