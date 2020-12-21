@@ -96,7 +96,7 @@ oai-hss                 production             5fa77e2b6b94        1 minute ago 
 ```bash
 $ docker build --target oai-mme --tag oai-mme:production \
                --file component/oai-mme/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" .
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-mme
 $ docker image prune --force
 $ docker image ls
 oai-mme                 prodution              45254be9f987        1 minute ago          256MB
@@ -132,7 +132,7 @@ oai-mme                 prodution              413cec7d8f3b        1 minute ago 
 ```bash
 $ docker build --target oai-spgwc --tag oai-spgwc:production \
                --file component/oai-spgwc/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" .
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwc
 $ docker image prune --force
 $ docker image ls
 oai-spgwc               production             b1ba7dd16bc5        1 minute ago          218MB
@@ -159,7 +159,7 @@ oai-spgwc               production             15ad64676b1f        1 minute ago 
 ```bash
 $ docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:production \
                --file component/oai-spgwu-tiny/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" .
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwu-tiny
 $ docker image prune --force
 $ docker image ls
 oai-spgwu-tiny          production             588e14481f2b        1 minute ago          220MB
