@@ -33,6 +33,10 @@ $ docker rm -f prod-db-init
 prod-db-init
 ```
 
+Note: we are removing the `prod-db-init` container because it is not needed anymore.
+
+You can keep but it is dead.
+
 # Deploy the rest of EPC #
 
 ```bash
