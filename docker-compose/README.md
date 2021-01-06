@@ -144,7 +144,7 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 ....
 ```
 
-Use the 2nd file value as **DEFAULT_DNS_IPV4_ADDRESS** field.
+Use the 2nd field value as **DEFAULT_DNS_IPV4_ADDRESS** field.
 
 In our example, as **DEFAULT_DNS_SEC_IPV4_ADDRESS** we are using Google's 2nd one. You can pick anything else.
 
@@ -156,7 +156,6 @@ Note that it is also defined in **CICDR** format for SPGW-U "12.1.1.0/24"
 
 If you have to change, please respect both formats.
 
-
 # Connecting an eNB
 
 The network configuration on eNB server(s) still is valid.
@@ -164,4 +163,3 @@ The network configuration on eNB server(s) still is valid.
 See [here](../docs/CONFIGURE_CONTAINERS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
 
 And see [here](../docs/CONFIGURE_CONTAINERS.md#verify-your-network-configuration) for commands to verify.
-
