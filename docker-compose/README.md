@@ -76,3 +76,92 @@ Removing prod-cassandra      ... done
 Removing network prod-oai-private-net
 Removing network prod-oai-public-net
 ```
+
+# How to edit the docker-compose file
+
+Obviously you want an EPC that runs for your environment. It means:
+
+*  Dedicated UE simcard configuration
+*  A different PLMN
+*  Your network configuration is certainly different
+
+## UE simcard and other UE configurations
+
+The final purpose of deploying an EPC is to connect a 4G UE (smartphone or dongle) to internet through an eNB.
+
+When "burning" a simcard, you need to decide the following parameters:
+
+* **IMSI** : International Mobile Subscriber Identity
+  * Formatting is explained [here](https://en.wikipedia.org/wiki/International_mobile_subscriber_identity)
+* **LTE_KEY** and **OPC_KEY**
+* There are more but I won't go into details.
+
+Once you've done this, put the simcard in your smartphone and power up it. You will need to add an new **APN** (Access Point Name).
+
+Here you can be creative. It's a string. Our only requirement --> It **SHALL** have at least one "." (dot). In our example "oai.ipv4".
+
+Now you need to provision the user(s) into the Cassandra Database, hence some of the **HSS** parameters:
+
+* **LTE_K** SHALL match **LTE_KEY** you used in burning the simcard
+* **OP_KEY** **is not** the **OPC_KEY** but it can be calculated from it and **LTE_KEY**.
+* **APN1** SHALL match the one you created on your smartphone.
+* **FIRST_IMSI** should match the one you chose
+
+The **SPGW-C** parameter **DEFAULT_APN** shall match also the APN you created.
+
+## Your Public Land Mobile Network (PLMN)
+
+I strongly recommend to only modify the **MCC**-type and **MNC**-type parameters.
+
+You could touch the **TAC**-type ones but it's quite more difficult for a simple tutorial.
+
+In our example, we used **222** and **01**. 
+
+Note that the **MNC3**-type parameters are encoded over 3 characters. This is mandatory.
+
+**Last important point:** Your MME PLMN **SHALL** match the one in your eNB configuration!
+
+For example, if you are using OAI eNB configuration file:
+
+```bash
+    tracking_area_code  =  1;
+    plmn_list = (
+      { mcc = 222; mnc = 01; mnc_length = 2; }
+    );
+```
+
+## Your network configuration
+
+Your EPC Docker host has its own gateway --> you need to provide it as "Local DNS server".
+
+On your EPC docker host, type:
+
+```bash
+$ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.18.129  0.0.0.0         UG    300    0        0 nm-bond
+....
+```
+
+Use the 2nd file value as **DEFAULT_DNS_IPV4_ADDRESS** field.
+
+In our example, as **DEFAULT_DNS_SEC_IPV4_ADDRESS** we are using Google's 2nd one. You can pick anything else.
+
+Last point: the UE IP address allocation pool. 
+
+In our example, I chose "12.1.1.2 - 12.1.1.254" range.
+
+Note that it is also defined in **CICDR** format for SPGW-U "12.1.1.0/24"
+
+If you have to change, please respect both formats.
+
+
+# Connecting an eNB
+
+The network configuration on eNB server(s) still is valid.
+
+See [here](../docs/CONFIGURE_CONTAINERS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
+
+And see [here](../docs/CONFIGURE_CONTAINERS.md#verify-your-network-configuration) for commands to verify.
+
