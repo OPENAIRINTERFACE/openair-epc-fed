@@ -39,9 +39,6 @@ function usage {
     echo "    --hss-branch ####"
     echo "    Specify the source branch for the OAI-HSS component"
     echo ""
-    echo "    --mme-branch ####"
-    echo "    Specify the source branch for the OAI-MME component"
-    echo ""
     echo "    --spgwc-branch ####"
     echo "    Specify the source branch for the OAI-SPGW-C component"
     echo ""
@@ -54,7 +51,6 @@ function usage {
 }
 
 HSS_BRANCH='develop'
-MME_BRANCH='develop'
 SPGWC_BRANCH='develop'
 SPGWU_BRANCH='develop'
 
@@ -72,12 +68,6 @@ case $key in
     ;;
     --hss-branch)
     HSS_BRANCH="$2"
-    doDefault=0
-    shift
-    shift
-    ;;
-    --mme-branch)
-    MME_BRANCH="$2"
     doDefault=0
     shift
     shift
@@ -105,7 +95,6 @@ done
 
 echo "---------------------------------------------------------"
 echo "OAI-HSS    component branch : ${HSS_BRANCH}"
-echo "OAI-MME    component branch : ${MME_BRANCH}"
 echo "OAI-SPGW-C component branch : ${SPGWC_BRANCH}"
 echo "OAI-SPGW-U component branch : ${SPGWU_BRANCH}"
 echo "---------------------------------------------------------"
@@ -122,9 +111,6 @@ then
 else
     pushd component/oai-hss
     git fetch --prune && git checkout $HSS_BRANCH && git pull origin $HSS_BRANCH
-    popd
-    pushd component/oai-mme
-    git fetch --prune && git checkout $MME_BRANCH && git pull origin $MME_BRANCH
     popd
     pushd component/oai-spgwc
     git fetch --prune && git checkout $SPGWC_BRANCH && git pull origin $SPGWC_BRANCH
