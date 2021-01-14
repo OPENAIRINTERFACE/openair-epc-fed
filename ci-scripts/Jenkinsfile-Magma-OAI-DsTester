@@ -194,6 +194,7 @@ pipeline {
       steps {
         lock (ds_tester_ci_resource) {
           script {
+            echo '\u2705 \u001B[32mTesting with DsTester framework\u001B[0m'
             sh 'cd ' + dsTestFrameworkLocation + ' && git clean -x -d -f > /dev/null'
             sh 'cd ' + dsTestFrameworkLocation + '/scripts && export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.:/usr/local/devsol/bin && CI_ENV=True CI_MAGMA=True SRC_BASE_DIR=' + WORKSPACE + ' ./run-4gc.bash -pt --shark --detach --get-results --4g > ' + WORKSPACE + '/archives/run-4g-dstester.log 2>&1'
             sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
@@ -204,6 +205,7 @@ pipeline {
     stage ('Undeploy Whole EPC') {
       steps {
         script {
+          echo '\u2705 \u001B[32mUn-Deploy EPC\u001B[0m'
           dir('ci-scripts/dsTesterDockerCompose') {
             sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
           }
