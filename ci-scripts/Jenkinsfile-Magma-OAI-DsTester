@@ -65,6 +65,10 @@ pipeline {
           JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
           JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
 
+          // Clean workspace and prepare artifacts location
+          sh "git clean -x -d -f > /dev/null 2>&1"
+          sh "mkdir -p archives DS-TEST-RESULTS"
+
           // Find out the cause of the trigger
           for (cause in currentBuild.getBuildCauses()) {
             if (cause.toString() ==~ /.*GitHubPushCause.*/) {
@@ -108,30 +112,36 @@ pipeline {
           }
           // Here we verify if all images tags are available.
           try {
-            sh('docker image inspect --format=\'Size = {{.Size}} bytes\' magma-mme:' + magmaMmeTag)
+            sh 'echo "MAGMA_MME_TAG: magma-mme:' + magmaMmeTag +'" > archives/magma_mme_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' magma-mme:' + magmaMmeTag + ' >> archives/magma_mme_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' magma-mme:' + magmaMmeTag + ' >> archives/magma_mme_image_info.log'
           } catch (Exception e) {
             error "Magma MME Image tag to test does not exist!"
           }
           try {
-            sh('docker image inspect --format=\'Size = {{.Size}} bytes\' oai-hss:' + hssTag)
+            sh 'echo "OAI_HSS_TAG: oai-hss:' + hssTag +'" > archives/oai_hss_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
           } catch (Exception e) {
             error "OAI HSS Image tag to test does not exist!"
           }
           try {
-            sh('docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwc:' + spgwcTag)
+            sh 'echo "OAI_SPGWC_TAG: oai-spgwc:' + spgwcTag +'" > archives/oai_spgwc_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
           } catch (Exception e) {
             error "OAI SPGW-C Image tag to test does not exist!"
           }
           try {
-            sh('docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwu-tiny:' + spgwuTag)
+            sh 'echo "OAI_SPGWU_TAG: oai-spgwu-tiny:' + spgwuTag +'" > archives/oai_spgwu_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
           } catch (Exception e) {
             error "OAI SPGW-U-Tiny Image tag to test does not exist!"
           }
 
           // Prepare workspace
-          sh "git clean -x -d -f > /dev/null 2>&1"
           sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
-          sh "mkdir -p archives DS-TEST-RESULTS"
         }
       }
     }
@@ -208,12 +218,13 @@ pipeline {
           sh 'docker-compose down > ../../archives/compose_preventive_down.log 2>&1'
         }
         // Zipping all archived log files
-        sh "zip -r -qq fed_docker_logs.zip archives"
+        sh "zip -r -qq fed_docker_logs.zip archives DS-TEST-RESULTS/*.tar DS-TEST-RESULTS/status.txt"
         if (fileExists('fed_docker_logs.zip')) {
           archiveArtifacts artifacts: 'fed_docker_logs.zip'
         }
         if (fileExists('test_results_oai_epc.html')) {
-          archiveArtifacts artifacts: 'test_results_oai_epc.html'
+          sh 'mv test_results_oai_epc.html test_results_magma_oai_epc.html'
+          archiveArtifacts artifacts: 'test_results_magma_oai_epc.html'
         }
       }
     }
