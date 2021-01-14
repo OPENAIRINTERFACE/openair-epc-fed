@@ -113,12 +113,18 @@ then
     git submodule foreach 'git fetch --prune && git checkout develop && git pull origin develop'  > /dev/null 2>&1
 else
     pushd component/oai-hss
-    git fetch --prune && git checkout $HSS_BRANCH && git pull origin $HSS_BRANCH  > /dev/null 2>&1
+    git fetch --prune > /dev/null 2>&1
+    git checkout $HSS_BRANCH > /dev/null 2>&1
+    git pull origin $HSS_BRANCH > /dev/null 2>&1
     popd
     pushd component/oai-spgwc
-    git fetch --prune && git checkout $SPGWC_BRANCH && git pull origin $SPGWC_BRANCH  > /dev/null 2>&1
+    git fetch --prune > /dev/null 2>&1
+    git checkout $SPGWC_BRANCH > /dev/null 2>&1
+    git pull origin $SPGWC_BRANCH > /dev/null 2>&1
     popd
     pushd component/oai-spgwu-tiny
-    git fetch --prune && git checkout $SPGWU_BRANCH && git pull origin $SPGWU_BRANCH  > /dev/null 2>&1
+    git fetch --prune > /dev/null 2>&1
+    git checkout $SPGWU_BRANCH > /dev/null 2>&1
+    git pull origin $SPGWU_BRANCH > /dev/null 2>&1
     popd
 fi
