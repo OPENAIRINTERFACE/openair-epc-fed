@@ -148,7 +148,7 @@ pipeline {
 
           // Deploy
           dir('ci-scripts/dsTesterDockerCompose') {
-            sh 'docker-compose up -d cicd_db_init > ../archives/compose_cassandra_up.log 2>&1'
+            sh 'docker-compose up -d cicd_db_init > ../../archives/compose_cassandra_up.log 2>&1'
             int count = 0
             while (count<6) {
               sh 'sleep 10'
@@ -164,7 +164,7 @@ pipeline {
             }
             sh 'docker rm cicd-db-init'
 
-            sh 'docker-compose up -d cicd_oai_spgwu > ../archives/compose_epc_up.log 2>&1'
+            sh 'docker-compose up -d cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
             sh 'sleep 10'
           }
 
@@ -188,7 +188,7 @@ pipeline {
       steps {
         script {
           dir('ci-scripts/dsTesterDockerCompose') {
-            sh 'docker-compose down > ../archives/compose_normal_down.log 2>&1'
+            sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
           }
         }
       }
@@ -198,7 +198,7 @@ pipeline {
     always {
       script {
         dir('ci-scripts/dsTesterDockerCompose') {
-          sh 'docker-compose down > ../archives/compose_preventive_down.log 2>&1'
+          sh 'docker-compose down > ../../archives/compose_preventive_down.log 2>&1'
         }
         // Zipping all archived log files
         sh "zip -r -qq fed_docker_logs.zip archives"
