@@ -123,6 +123,7 @@ pipeline {
           sh 'sed -e "s@exec.*@sleep infinity@" component/oai-hss/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/hss-entrypoint-sleep.sh'
           sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwc/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/spgwc-entrypoint-sleep.sh'
           sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwu-tiny/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/spgwu-entrypoint-sleep.sh'
+          sh 'chmod 755 ci-scripts/dsTesterDockerCompose/*entrypoint-sleep.sh'
 
           // Deploy
           dir('ci-scripts/dsTesterDockerCompose') {
@@ -132,8 +133,15 @@ pipeline {
             sh 'docker rm cicd-db-init'
 
             sh 'docker-compose up -d cicd_oai_spgwu'
-            // Once all OK. do docker logs to recover the configuration results
+            sh 'sleep 10'
           }
+
+          // Once all OK. do docker logs to recover the configuration results
+          sh 'docker exec -it cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+          sh 'docker logs cicd-oai-hss > archives/hss_config.log'
+          sh 'docker logs cicd-oai-mme > archives/mme_config.log'
+          sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log'
+          sh 'docker logs cicd-oai-spgwu-tiny > archives/spgwu_config.log'
         }
       }
     }
@@ -151,6 +159,21 @@ pipeline {
             sh 'docker-compose down'
           }
         }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        dir('ci-scripts/dsTesterDockerCompose') {
+          sh 'docker-compose down'
+        }
+        // Zipping all archived log files
+        sh "zip -r -qq fed_docker_logs.zip archives"
+        if (fileExists('fed_docker_logs.zip')) {
+          archiveArtifacts artifacts: 'fed_docker_logs.zip'
+        }
+
       }
     }
   }
