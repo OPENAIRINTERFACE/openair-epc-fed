@@ -30,7 +30,7 @@ def ds_tester_ci_resource = params.DsTester
 // Default tags / branches  --> could be passed on by upstream job or by PR content
 def hssTag = 'develop'
 def hssBranch = 'develop'
-def magmaMmeTag = 'develop'
+def magmaMmeTag = 'ci-tmp'
 // No branch for MAGMA
 def spgwcTag = 'develop'
 def spgwcBranch = 'develop'
