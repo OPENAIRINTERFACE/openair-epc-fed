@@ -138,6 +138,7 @@ pipeline {
               }
               count++
             }
+            sh 'docker logs cicd-db-init'
             sh 'docker rm cicd-db-init'
 
             sh 'docker-compose up -d cicd_oai_spgwu'
@@ -145,7 +146,7 @@ pipeline {
           }
 
           // Once all OK. do docker logs to recover the configuration results
-          sh 'docker exec -it cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log'
+          sh 'docker exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log'
           sh 'docker logs cicd-oai-hss > archives/hss_config.log'
           sh 'docker logs cicd-oai-mme > archives/mme_config.log'
           sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log'
