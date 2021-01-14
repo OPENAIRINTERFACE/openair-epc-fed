@@ -37,6 +37,10 @@ def spgwcBranch = 'develop'
 def spgwuTag = 'develop'
 def spgwuBranch = 'develop'
 
+// Flags
+def scmEvent = false
+def upstreamEvent = false
+
 //-------------------------------------------------------------------------------
 // Pipeline start
 pipeline {
