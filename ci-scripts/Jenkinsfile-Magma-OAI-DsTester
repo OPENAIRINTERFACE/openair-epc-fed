@@ -128,8 +128,16 @@ pipeline {
           // Deploy
           dir('ci-scripts/dsTesterDockerCompose') {
             sh 'docker-compose up -d cicd_db_init'
-            sh 'sleep 60'
-            sh 'docker logs cicd-db-init'
+            int count = 0
+            while (count<6) {
+              sh 'sleep 10'
+              ret = sh returnStdout: true, script: 'docker logs cicd-db-init | grep -c OK || true'
+              ret = ret.trim()
+              if (ret == '1') {
+                count = 10
+              }
+              count++
+            }
             sh 'docker rm cicd-db-init'
 
             sh 'docker-compose up -d cicd_oai_spgwu'
@@ -137,7 +145,7 @@ pipeline {
           }
 
           // Once all OK. do docker logs to recover the configuration results
-          sh 'docker exec -it cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+          sh 'docker exec -it cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log'
           sh 'docker logs cicd-oai-hss > archives/hss_config.log'
           sh 'docker logs cicd-oai-mme > archives/mme_config.log'
           sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log'
