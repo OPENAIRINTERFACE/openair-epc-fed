@@ -27,6 +27,9 @@ def cn_ci_host = params.Host_CN_CI_Server
 def cn_ci_resource = params.DockerContainers
 def ds_tester_ci_resource = params.DsTester
 
+// Location of the DsTester workspace
+def dsTestFrameworkLocation = params.dsTestFrameworkLocation
+
 // Default tags / branches  --> could be passed on by upstream job or by PR content
 def hssTag = 'develop'
 def hssBranch = 'develop'
@@ -179,8 +182,12 @@ pipeline {
     }
     stage ('Test EPC') {
       steps {
-        script {
-          sh 'sleep 60'
+        lock (ds_tester_ci_resource) {
+          script {
+            sh 'cd ' + dsTestFrameworkLocation + ' && git clean -x -d -f > /dev/null'
+            sh 'cd ' + dsTestFrameworkLocation + ' && CI_ENV=True CI_MAGMA=True SRC_BASE_DIR=' + WORKSPACE + ' ./run-4gc.bash -pt --shark --detach --get-results --4g > ' + WORKSPACE + '/archives/run-4g-dstester.log 2>&1'
+            sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+          }
         }
       }
     }
@@ -204,6 +211,9 @@ pipeline {
         sh "zip -r -qq fed_docker_logs.zip archives"
         if (fileExists('fed_docker_logs.zip')) {
           archiveArtifacts artifacts: 'fed_docker_logs.zip'
+        }
+        if (fileExists('test_results_oai_epc.html')) {
+          archiveArtifacts artifacts: 'test_results_oai_epc.html'
         }
       }
     }
