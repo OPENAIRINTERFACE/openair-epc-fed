@@ -103,11 +103,12 @@ pipeline {
               echo "Upstream Job passed SPGWU_BRANCH to use: ${spgwuBranch}"
             }
           }
+          // Here we could verify if all images tags are available.
+
+          // Prepare workspace
           sh "git clean -x -d -f > /dev/null 2>&1"
           sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
           sh "mkdir -p archives DS-TEST-RESULTS"
-
-          // Here we could verify if all images tags are available.
         }
       }
     }
@@ -131,14 +132,16 @@ pipeline {
             int count = 0
             while (count<6) {
               sh 'sleep 10'
-              ret = sh returnStdout: true, script: 'docker logs cicd-db-init | grep -c OK || true'
+              ret = sh returnStdout: true, script: 'docker logs cicd-db-init 2> /dev/null | grep -c OK || true'
               ret = ret.trim()
               if (ret == '1') {
                 count = 10
               }
               count++
             }
-            sh 'docker logs cicd-db-init'
+            if (count<10) {
+              error('Could not init Cassandra tables in time')
+            }
             sh 'docker rm cicd-db-init'
 
             sh 'docker-compose up -d cicd_oai_spgwu'
@@ -146,11 +149,11 @@ pipeline {
           }
 
           // Once all OK. do docker logs to recover the configuration results
-          sh 'docker exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log'
-          sh 'docker logs cicd-oai-hss > archives/hss_config.log'
-          sh 'docker logs cicd-oai-mme > archives/mme_config.log'
-          sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log'
-          sh 'docker logs cicd-oai-spgwu-tiny > archives/spgwu_config.log'
+          sh 'docker exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+          sh 'docker logs cicd-oai-hss > archives/hss_config.log 2>&1'
+          sh 'docker logs cicd-oai-mme > archives/mme_config.log 2>&1'
+          sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log 2>&1'
+          sh 'docker logs cicd-oai-spgwu-tiny > archives/spgwu_config.log 2>&1'
         }
       }
     }
