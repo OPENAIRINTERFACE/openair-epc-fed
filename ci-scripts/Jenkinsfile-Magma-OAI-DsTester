@@ -180,8 +180,13 @@ pipeline {
 
             sh 'docker-compose up -d cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
             sh 'sleep 20'
-            // Later do check on number of healthy containers
-            sh 'docker-compose ps -a'
+            // Do a check on number of healthy containers
+            // 5 == cassandra + hss + mme + spgwc + spgwu
+            ret = sh returnStdout: true, script: 'docker-compose ps -a | grep -v unhealthy | grep -c healthy || true'
+            ret = ret.trim()
+            if (ret != '5') {
+              error "Deployment went wrong!"
+            }
           }
         }
       }
