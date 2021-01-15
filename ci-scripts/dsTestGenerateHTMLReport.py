@@ -93,10 +93,26 @@ class HtmlReport():
 
 	def deploymentSummaryHeader(self):
 		self.file.write('  <h2>Deployment Summary</h2>\n')
-		self.file.write('  <div class="alert alert-success">\n')
-		self.file.write('    <strong>Successful Deployment! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
-		self.file.write('  </div>\n')
-
+		cwd = os.getcwd()
+		if os.path.isfile(cwd + '/archives/deployment_status.log'):
+			cmd = 'egrep -c "DEPLOYMENT: OK" archives/deployment_status.log || true'
+			status = False
+			ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+			if ret.stdout is not None:
+				if ret.stdout.strip() == '1':
+					status = True
+			if status:
+				self.file.write('  <div class="alert alert-success">\n')
+				self.file.write('    <strong>Successful Deployment! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('  </div>\n')
+			else:
+				self.file.write('  <div class="alert alert-danger">\n')
+				self.file.write('    <strong>Failed Deployment! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('  </div>\n')
+		else:
+			self.file.write('  <div class="alert alert-warning">\n')
+			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+			self.file.write('  </div>\n')
 		self.file.write('  <br>\n')
 		self.file.write('  <button data-toggle="collapse" data-target="#deployment-details">More details on Deployment</button>\n')
 		self.file.write('  <br>\n')
@@ -124,15 +140,19 @@ class HtmlReport():
 		if imageInfoPrefix == 'magma_mme':
 			containerName = 'magma-mme'
 			tagPattern = 'MAGMA_MME_TAG'
+			statusPrefix = 'mme'
 		if imageInfoPrefix == 'oai_hss':
 			containerName = 'oai-hss'
 			tagPattern = 'OAI_HSS_TAG'
+			statusPrefix = 'hss'
 		if imageInfoPrefix == 'oai_spgwc':
 			containerName = 'oai-spgwc'
 			tagPattern = 'OAI_SPGWC_TAG'
+			statusPrefix = 'spgwc'
 		if imageInfoPrefix == 'oai_spgwu':
 			containerName = 'oai-spgwu-tiny'
 			tagPattern = 'OAI_SPGWU_TAG'
+			statusPrefix = 'spgwu'
 		if imageInfoPrefix == 'cassandra':
 			containerName = imageInfoPrefix
 			tagPattern = 'N/A'
@@ -162,12 +182,21 @@ class HtmlReport():
 							sizeInt = int(sizeInt / 1000000)
 							size = str(sizeInt) + ' MB'
 			imageLog.close()
+			configState = 'KO'
+			cmd = 'egrep -c "STATUS: healthy" archives/' + statusPrefix + '_config.log || true'
+			ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+			if ret.stdout is not None:
+				if ret.stdout.strip() == '1':
+					configState = 'OK'
 			self.file.write('     <tr>\n')
 			self.file.write('       <td>' + containerName + '</td>\n')
 			self.file.write('       <td>' + usedTag + '</td>\n')
 			self.file.write('       <td>' + createDate + '</td>\n')
 			self.file.write('       <td>' + size + '</td>\n')
-			self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+			if configState == 'OK':
+				self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">' + configState + '</font></b></td>\n')
+			else:
+				self.file.write('       <td bgcolor = "Red"><b><font color="white">' + configState + '</font></b></td>\n')
 			self.file.write('     </tr>\n')
 		else:
 			if imageInfoPrefix == 'cassandra':
@@ -176,7 +205,16 @@ class HtmlReport():
 				self.file.write('       <td>cassandra:2.1</td>\n')
 				self.file.write('       <td>N/A</td>\n')
 				self.file.write('       <td>496MB</td>\n')
-				self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+				configState = 'KO'
+				cmd = 'egrep -c "STATUS: healthy" archives/cassandra_status.log || true'
+				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+				if ret.stdout is not None:
+					if ret.stdout.strip() == '1':
+						configState = 'OK'
+				if configState == 'OK':
+					self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+				else:
+					self.file.write('       <td bgcolor = "Red"><b><font color="white">KO</font></b></td>\n')
 				self.file.write('     </tr>\n')
 			elif imageInfoPrefix == 'redis':
 				self.file.write('     <tr>\n')
@@ -184,7 +222,16 @@ class HtmlReport():
 				self.file.write('       <td>redis:6.0.5</td>\n')
 				self.file.write('       <td>N/A</td>\n')
 				self.file.write('       <td>104MB</td>\n')
-				self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+				configState = 'KO'
+				cmd = 'grep -c 2 archives/redis_status.log || true'
+				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+				if ret.stdout is not None:
+					if ret.stdout.strip() == '1':
+						configState = 'OK'
+				if configState == 'OK':
+					self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+				else:
+					self.file.write('       <td bgcolor = "Red"><b><font color="white">KO</font></b></td>\n')
 				self.file.write('     </tr>\n')
 			else:
 				self.file.write('     <tr>\n')

@@ -229,6 +229,16 @@ pipeline {
             }
           }
         }
+        success {
+          script {
+            sh 'echo "DEPLOYMENT: OK" > archives/deployment_status.log'
+          }
+        }
+        unsuccessful {
+          script {
+            sh 'echo "DEPLOYMENT: KO" > archives/deployment_status.log'
+          }
+        }
       }
     }
     stage ('Test EPC') {
