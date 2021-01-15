@@ -55,7 +55,13 @@ services:
             NB_USERS: 200
         volumes:
             - ./hss-entrypoint-sleep.sh:/openair-hss/bin/hss-entrypoint-sleep.sh
+            - ./hss-healthy-check.sh:/openair-hss/bin/hss-healthy-check.sh
         entrypoint: /bin/bash -c "/openair-hss/bin/hss-entrypoint-sleep.sh"
+        healthcheck:
+            test: /bin/bash -c "/openair-hss/bin/hss-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     cicd_redis:
         image: redis:6.0.5
@@ -90,8 +96,13 @@ services:
             - ./mme_fd.sprint.conf:/magma-mme/etc/mme_fd.conf.tmplt
             - ./mme.conf:/magma-mme/etc/mme.conf
             - ./mme-cfg.sh:/magma-mme/scripts/mme-cfg.sh
-            - /home/oaici/raphael/magma:/magma
+            - ./mme-healthy-check.sh:/magma-mme/bin/mme-healthy-check.sh
         entrypoint: /bin/bash -c "cd /magma-mme/scripts; ./mme-cfg.sh"
+        healthcheck:
+            test: /bin/bash -c "/magma-mme/bin/mme-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     cicd_oai_spgwc:
         image: oai-spgwc:SPGWC_IMAGE_TAG
@@ -114,7 +125,13 @@ services:
             PUSH_PROTOCOL_OPTION: 'yes'
         volumes:
             - ./spgwc-entrypoint-sleep.sh:/openair-spgwc/bin/spgwc-entrypoint-sleep.sh
+            - ./spgwc-healthy-check.sh:/openair-spgwc/bin/spgwc-healthy-check.sh
         entrypoint: /bin/bash -c "/openair-spgwc/bin/spgwc-entrypoint-sleep.sh"
+        healthcheck:
+            test: /bin/bash -c "/openair-spgwc/bin/spgwc-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     cicd_oai_spgwu:
         image: oai-spgwu-tiny:SPGWU_IMAGE_TAG
@@ -135,7 +152,13 @@ services:
             NETWORK_UE_NAT_OPTION: 'yes'
         volumes:
             - ./spgwu-entrypoint-sleep.sh:/openair-spgwu-tiny/bin/spgwu-entrypoint-sleep.sh
+            - ./spgwu-healthy-check.sh:/openair-spgwu-tiny/bin/spgwu-healthy-check.sh
         entrypoint: /bin/bash -c "/openair-spgwu-tiny/bin/spgwu-entrypoint-sleep.sh"
+        healthcheck:
+            test: /bin/bash -c "/openair-spgwu-tiny/bin/spgwu-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 networks:
     cicd_private_net:
