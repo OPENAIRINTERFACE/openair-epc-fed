@@ -89,7 +89,7 @@ pipeline {
               hssBranch = params.HSS_BRANCH
               echo "Upstream Job passed HSS_BRANCH to use: ${hssBranch}"
             }
-            if (params.MME_TAG != null) {
+            if (params.MAGMA_MME_TAG != null) {
               magmaMmeTag = params.MAGMA_MME_TAG
               echo "Upstream Job passed MAGMA_MME_TAG to use: ${magmaMmeTag}"
             }
