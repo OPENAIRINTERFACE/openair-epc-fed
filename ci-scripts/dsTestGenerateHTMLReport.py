@@ -63,15 +63,15 @@ class HtmlReport():
 		self.file.write('<body><div class="container">\n')
 		self.file.write('  <table width = "100%" style="border-collapse: collapse; border: none;">\n')
 		self.file.write('   <tr style="border-collapse: collapse; border: none;">\n')
-		self.file.write('	 <td style="border-collapse: collapse; border: none;">\n')
-		self.file.write('	   <a href="http://www.openairinterface.org/">\n')
-		self.file.write('		  <img src="http://www.openairinterface.org/wp-content/uploads/2016/03/cropped-oai_final_logo2.png" alt="" border="none" height=50 width=150>\n')
-		self.file.write('		  </img>\n')
-		self.file.write('	   </a>\n')
-		self.file.write('	 </td>\n')
-		self.file.write('	 <td style="border-collapse: collapse; border: none; vertical-align: center;">\n')
-		self.file.write('	   <b><font size = "6">Job Summary -- Job: ' + self.job_name + ' -- Build-ID: <a href="' + self.job_url + '">' + self.job_id + '</a></font></b>\n')
-		self.file.write('	 </td>\n')
+		self.file.write('     <td style="border-collapse: collapse; border: none;">\n')
+		self.file.write('       <a href="http://www.openairinterface.org/">\n')
+		self.file.write('         <img src="http://www.openairinterface.org/wp-content/uploads/2016/03/cropped-oai_final_logo2.png" alt="" border="none" height=50 width=150>\n')
+		self.file.write('         </img>\n')
+		self.file.write('       </a>\n')
+		self.file.write('     </td>\n')
+		self.file.write('     <td style="border-collapse: collapse; border: none; vertical-align: center;">\n')
+		self.file.write('       <b><font size = "6">Job Summary -- Job: ' + self.job_name + ' -- Build-ID: <a href="' + self.job_url + '">' + self.job_id + '</a></font></b>\n')
+		self.file.write('     </td>\n')
 		self.file.write('   </tr>\n')
 		self.file.write('  </table>\n')
 		self.file.write('  <br>\n')
@@ -100,15 +100,15 @@ class HtmlReport():
 
 			if finalStatusOK:
 				self.file.write('  <div class="alert alert-success">\n')
-				self.file.write('	 <strong>Successful DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('    <strong>Successful DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 			else:
 				self.file.write('  <div class="alert alert-danger">\n')
-				self.file.write('	 <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('    <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 		else:
 			self.file.write('  <div class="alert alert-warning">\n')
-			self.file.write('	 <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 			self.file.write('  </div>\n')
 		return finalStatusOK
 
