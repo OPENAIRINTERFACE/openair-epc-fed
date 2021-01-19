@@ -74,21 +74,21 @@ class deployForDsTester():
         doLoop = True
         while doLoop:
             try:
-                res = subprocess.check_output('docker exec -it cicd-cassandra /bin/bash -c "nodetool status"', shell=True, universal_newlines=True)
+                res = subprocess.check_output('docker exec cicd-cassandra /bin/bash -c "nodetool status"', shell=True, universal_newlines=True)
                 rackFound = re.search('UN  ' + CICD_CASS_IP_ADDR, str(res))
                 if rackFound is not None:
                     doLoop = False
             except:
                 time.sleep(1)
                 pass
-        subprocess_run_w_echo('docker exec -it cicd-cassandra /bin/bash -c "nodetool status" | tee archives/cassandra_status.log')
+        subprocess_run_w_echo('docker exec cicd-cassandra /bin/bash -c "nodetool status" | tee archives/cassandra_status.log')
         subprocess_run_w_echo('docker cp component/oai-hss/src/hss_rel14/db/oai_db.cql cicd-cassandra:/home')
         time.sleep(2)
         doLoop = True
         while doLoop:
             try:
-                res = subprocess.check_output('docker exec -it cicd-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ' + CICD_CASS_IP_ADDR + '"', shell=True, universal_newlines=True)
-                print('docker exec -it cicd-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ' + CICD_CASS_IP_ADDR + '"')
+                res = subprocess.check_output('docker exec cicd-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ' + CICD_CASS_IP_ADDR + '"', shell=True, universal_newlines=True)
+                print('docker exec cicd-cassandra /bin/bash -c "cqlsh --file /home/oai_db.cql ' + CICD_CASS_IP_ADDR + '"')
                 doLoop = False
             except:
                 time.sleep(2)
@@ -116,7 +116,7 @@ class deployForDsTester():
             subprocess_run_w_echo('docker network connect --ip ' + CICD_HSS_PUBLIC_ADDR + ' cicd-oai-public-net cicd-oai-hss')
         subprocess_run_w_echo('python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=' + CICD_CASS_IP_ADDR + ' --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=200 --imsi=100000000000001 --ltek=0c0a34601d4f07677303652c0462535b --op=63bfa50ee6523365ff14c1f45f88737d --nb_mmes=4 --from_docker_file')
         subprocess_run_w_echo('docker cp ./hss-cfg.sh cicd-oai-hss:/openair-hss/scripts')
-        subprocess_run_w_echo('docker exec -it cicd-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh" > archives/hss_config.log')
+        subprocess_run_w_echo('docker exec cicd-oai-hss /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh" > archives/hss_config.log')
 
     def deployMME(self):
         res = ''
@@ -134,7 +134,7 @@ class deployForDsTester():
             subprocess_run_w_echo('docker run --privileged --name cicd-oai-mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' -d oai-mme:' + self.tag + ' /bin/bash -c "sleep infinity"')
         subprocess_run_w_echo('python3 ./ci-scripts/generate_mme_config_script.py --kind=MME --hss_s6a=' + CICD_HSS_PUBLIC_ADDR + ' --mme_s6a=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s1c_name=eth0 --mme_s10_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s10_name=eth0 --mme_s11_IP=' + CICD_MME_PUBLIC_ADDR + ' --mme_s11_name=eth0 --spgwc0_s11_IP=' + CICD_SPGWC_PUBLIC_ADDR + ' --mme_gid=455 --mme_code=5 --mcc=320 --mnc=230 --tai_list="5556 506 301,5556 505 300,1235 203 101,1235 202 100,5557 506 301,5557 505 300,1236 203 101,1236 202 100" --realm=openairinterface.org --prefix=/openair-mme/etc --from_docker_file')
         subprocess_run_w_echo('docker cp ./mme-cfg.sh cicd-oai-mme:/openair-mme/scripts')
-        subprocess_run_w_echo('docker exec -it cicd-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh" > archives/mme_config.log')
+        subprocess_run_w_echo('docker exec cicd-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh" > archives/mme_config.log')
         subprocess_run_w_echo('docker cp mme.conf cicd-oai-mme:/openair-mme/etc')
 
     def deploySPGWC(self):
@@ -153,7 +153,7 @@ class deployForDsTester():
             subprocess_run_w_echo('docker run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' -d oai-spgwc:' + self.tag + ' /bin/bash -c "sleep infinity"')
         subprocess_run_w_echo('python3 ci-scripts/generate_spgwc_config_script.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --prefix=/openair-spgwc/etc --dns1=192.168.18.129 --dns2=8.8.8.8 --apn_list="apn1.carrier.com apn2.carrier.com" --pdn_list="12.0.0.0/24 12.1.0.0/24" --s5p5_production --from_docker_file')
         subprocess_run_w_echo('docker cp ./spgwc-cfg.sh cicd-oai-spgwc:/openair-spgwc')
-        subprocess_run_w_echo('docker exec -it cicd-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh" > archives/spgwc_config.log')
+        subprocess_run_w_echo('docker exec cicd-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh" > archives/spgwc_config.log')
         subprocess_run_w_echo('docker cp ./spgw_c.conf cicd-oai-spgwc:/openair-spgwc/etc')
 
     def deploySPGWU(self):
