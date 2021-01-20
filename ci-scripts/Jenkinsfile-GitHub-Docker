@@ -38,6 +38,9 @@ def cn_ci_host = params.Host_CN_CI_Server
 def cn_ci_resource = params.DockerContainers
 def ds_tester_ci_resource = params.DsTester
 
+// When triggered by upstream, specify which tag to use
+def upstreamTagToUse = params.upstreamTagToUse
+
 // Location of the 2nd CN executor
 def new_host_flag = false
 def new_host = ""
@@ -237,8 +240,8 @@ pipeline {
               echo "Upstream Job passed SPGWU_BRANCH to use: ${spgwuBranch}"
             }
             sh "git clean -x -d -f > /dev/null 2>&1"
-            sh "git checkout -f master"
-            sh "git pull origin master"
+            sh "git fetch --prune > /dev/null 2>&1"
+            sh 'git checkout -f ' + upstreamTagToUse
             sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir -p archives DS-TEST-RESULTS"
             if (new_host_flag) {
