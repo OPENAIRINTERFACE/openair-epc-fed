@@ -150,7 +150,7 @@ pipeline {
         script {
           // EPC is in idle mode because our DsTester framework starts and stops all cNFs for each scenario
           echo '\u2705 \u001B[32mDeploy EPC in idle mode\u001B[0m'
-          ret = sh returnStdout: true, script: "docker image inspect --format '{{ json .Config.Labels }}' magma-mme:' + magmaMmeTag + '| grep use-separate-hss-realm | grep -c true || true"
+          ret = sh returnStdout: true, script: 'docker image inspect --format \'{{ json .Config.Labels }}\' magma-mme:' + magmaMmeTag + '| grep use-separate-hss-realm | grep -c true || true'
           ret = ret.trim()
           // Prepare all needed files for docker-compose
           // First put all correct tags to test
