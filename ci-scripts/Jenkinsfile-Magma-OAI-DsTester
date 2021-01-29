@@ -156,7 +156,11 @@ pipeline {
           // First put all correct tags to test
           sh 'sed -e "s#HSS_IMAGE_TAG#' + hssTag + '#" -e "s#MAGMA_MME_IMAGE_TAG#' + magmaMmeTag + '#" -e "s#SPGWC_IMAGE_TAG#' + spgwcTag + '#" -e "s#SPGWU_IMAGE_TAG#' + spgwuTag + '#" ci-scripts/dsTesterDockerCompose/docker-compose.tplt > ci-scripts/dsTesterDockerCompose/docker-compose.yml'
           if (ret == '1') {
+            // In Mohit's branch --> Separate HSS Realm
             sh 'sed -i -e "s@#SEPARATE_HSS_REALM@@" ci-scripts/dsTesterDockerCompose/mme.conf'
+            // And we enable the NSA scenario
+            // Temporary once PR is accepted, to be removed
+            sh 'sed -i -e "29,32s@^#@@" ' + dsTestFrameworkLocation + '/ds-tests/4g-prod-validation.list'
           } else {
             sh 'sed -i -e "s@#COMMON_HSS_REALM@@" ci-scripts/dsTesterDockerCompose/mme.conf'
           }
@@ -261,6 +265,8 @@ pipeline {
             sh 'cd ' + dsTestFrameworkLocation + ' && git clean -x -d -f > /dev/null'
             sh 'cd ' + dsTestFrameworkLocation + '/scripts && export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.:/usr/local/devsol/bin && CI_ENV=True CI_MAGMA=True SRC_BASE_DIR=' + WORKSPACE + ' ./run-4gc.bash -pt --shark --detach --get-results --4g > ' + WORKSPACE + '/archives/run-4g-dstester.log 2>&1'
             sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+            sh 'cd ' + dsTestFrameworkLocation + ' && git stash > /dev/null'
+            sh 'cd ' + dsTestFrameworkLocation + ' && git stash clear > /dev/null'
           }
         }
       }
