@@ -179,5 +179,8 @@ oai-spgwu-tiny          production             f2d0a07fba2c        1 minute ago 
 ...
 ```
 
-You are ready to [Configure the Containers](./CONFIGURE_CONTAINERS.md).
+To deploy, 2 solutions:
+
+* [Using a docker-compose easier approach](../docker-compose/README.md) (RECOMMENDED)
+* Or a more manual approach: [Configure the Containers](./CONFIGURE_CONTAINERS.md).
 

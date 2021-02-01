@@ -16,6 +16,13 @@
 
 1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES.md)
 2.  [Building the Docker Images](./BUILD_IMAGES.md)
+3.  [Deploying using docker-compose](../docker-compose/README.md)
+4.  [Generating Traffic to a connected UE](./GENERATE_TRAFFIC.md)
+
+**If you are adventurous, you can do some manual configuration:**
+
+1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES.md)
+2.  [Building the Docker Images](./BUILD_IMAGES.md)
 3.  [Configuring the Containers](./CONFIGURE_CONTAINERS.md)
 4.  [Running the Network Functions](./RUN_CNF.md)
 5.  [Generating Traffic to a connected UE](./GENERATE_TRAFFIC.md)
