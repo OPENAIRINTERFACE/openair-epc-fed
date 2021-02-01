@@ -186,7 +186,7 @@ magma-mme               nsa-support            b6fb01eb0d07        1 minute ago 
 
 If you are planning to re-build MAGMA-MME Docker image, here is is a trick:
 
-Normally after the 25 minutes, you should get the MME image but also a dangling image that should
+Normally after the 35 minutes, you should get the MME image but also a dangling image that should
 be quite large (5+ GBytes).
 
 ```bash

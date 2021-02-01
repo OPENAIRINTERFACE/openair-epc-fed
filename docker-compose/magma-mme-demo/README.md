@@ -18,6 +18,12 @@
 2.  [Deploy the rest of EPC](#2-deploy-the-rest-of-epc)
 3.  [Undeploy the EPC](#3-undeploy-the-epc)
 4.  [How to edit the docker-compose file](#4-how-to-edit-the-docker-compose-file)
+    1.  [UE simcard and other UE configurations](#41-ue-simcard-and-other-ue-configurations)
+    2.  [Your Public Land Mobile Network](#42-your-public-land-mobile-network)
+    3.  [Your network configuration](#43-your-network-configuration)
+    4.  [Miscellaneous](#44-miscellaneous)
+5.  [Connecting an eNB](#5-connecting-an-enb)
+6.  [Connecting a Smartphone in 5G using NSA support from OAI RAN](#6-connecting-a-smartphone-in-5g-using-nsa-support-from-oai-ran)
 
 # 1. Initialize the Cassandra DB #
 
@@ -130,7 +136,9 @@ Now you need to provision the user(s) into the Cassandra Database, hence some of
 
 The **SPGW-C** parameter **DEFAULT_APN** shall match also the APN you created.
 
-## 4.2. Your Public Land Mobile Network (PLMN) ##
+## 4.2. Your Public Land Mobile Network ##
+
+AKA PLMN.
 
 I strongly recommend to only modify the **MCC**-type and **MNC**-type parameters.
 
@@ -177,6 +185,32 @@ Note that it is also defined in **CICDR** format for SPGW-U "12.1.1.0/24"
 
 If you have to change, please respect both formats.
 
+## 4.4. Miscellaneous ##
+
+At the time of writing (2021 / 02 / 01), the automation on the MAGMA-MME image is not completed.
+
+There are no entry-point scripts, no default MME configuration file.
+
+Hence there are 2 files in this folder:
+
+- `mme-cfg.sh` that behaves as `entrypoint`
+- `mme.conf` already completed MME configuration file
+
+Both files do have pre-filled parameters such realm, IP addresses...
+
+Be careful when modifying them.
+
+Note that in the `mme.conf`, the **S6A** section has changed: the MME supports now the connection with an HSS entity in a different realm.
+
+```bash
+    S6A :
+    {
+        S6A_CONF                   = "/magma-mme/etc/mme_fd.conf"; # YOUR MME freeDiameter config file path
+        HSS_HOSTNAME               = "hss.openairinterface.org";
+        HSS_REALM                  = "openairinterface.org";
+    };
+```
+
 # 5. Connecting an eNB #
 
 The network configuration on eNB server(s) still is valid.
@@ -184,3 +218,8 @@ The network configuration on eNB server(s) still is valid.
 See [here](../../docs/CONFIGURE_CONTAINERS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
 
 And see [here](../../docs/CONFIGURE_CONTAINERS.md#verify-your-network-configuration) for commands to verify.
+
+# 6. Connecting a Smartphone in 5G using NSA support from OAI RAN #
+
+This part explains the RAN-related section to the demo made during MAGMA-dev conference in February 3rd, 2021.
+See [here](../../docs/NSA_SUPPORT_OAI_RAN.md)
