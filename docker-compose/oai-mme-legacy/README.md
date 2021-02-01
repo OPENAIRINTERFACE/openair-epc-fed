@@ -2,7 +2,7 @@
   <tr style="border-collapse: collapse; border: none;">
     <td style="border-collapse: collapse; border: none;">
       <a href="http://www.openairinterface.org/">
-         <img src="../docs/images/oai_final_logo.png" alt="" border=3 height=50 width=150>
+         <img src="../../docs/images/oai_final_logo.png" alt="" border=3 height=50 width=150>
          </img>
       </a>
     </td>
@@ -15,7 +15,7 @@
 # Initialize the Cassandra DB #
 
 ```bash
-$ cd docker-compose
+$ cd docker-compose/oai-mme-legacy
 $ docker-compose up -d db_init
 Creating network "prod-oai-private-net" with the default driver
 Creating network "prod-oai-public-net" with the default driver
@@ -160,6 +160,6 @@ If you have to change, please respect both formats.
 
 The network configuration on eNB server(s) still is valid.
 
-See [here](../docs/CONFIGURE_CONTAINERS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
+See [here](../../docs/CONFIGURE_CONTAINERS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
 
-And see [here](../docs/CONFIGURE_CONTAINERS.md#verify-your-network-configuration) for commands to verify.
+And see [here](../../docs/CONFIGURE_CONTAINERS.md#verify-your-network-configuration) for commands to verify.

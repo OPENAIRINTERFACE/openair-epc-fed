@@ -16,7 +16,7 @@
 
 1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES.md)
 2.  [Building the Docker Images](./BUILD_IMAGES.md)
-3.  [Deploying using docker-compose](../docker-compose/README.md)
+3.  [Deploying using docker-compose](../docker-compose/oai-mme-legacy/README.md)
 4.  [Generating Traffic to a connected UE](./GENERATE_TRAFFIC.md)
 
 **If you are adventurous, you can do some manual configuration:**
