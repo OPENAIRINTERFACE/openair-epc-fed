@@ -16,6 +16,9 @@
 **TABLE OF CONTENTS**
 
 1.  [Verify your connectivity on all servers](#1-verify-your-connectivity-on-all-servers)
+    1.  [Between eNB and the EPC containers](#11-between-enb-and-the-epc-containers)
+    2.  [Between gNB and the EPC containers](#12-between-gnb-and-the-epc-containers)
+    3.  [Between eNB and gNB](#13-between-enb-and-gnb)
 2.  [Configuring your eNB and gNB](#2-configuring-your-enb-and-gnb)
 
 Here is a picture of what we will be doing:
@@ -24,6 +27,8 @@ Here is a picture of what we will be doing:
 
 
 # 1. Verify your connectivity on all servers #
+
+## 1.1. Between eNB and the EPC containers ##
 
 The eNB server **SHALL** see the MME and the SPGW-U containers.
 
@@ -58,6 +63,36 @@ rtt min/avg/max/mdev = 0.233/0.261/0.306/0.032 ms
 
 You can also verify the **SCTP** connection using a tool such as [sctp_test](https://manpages.debian.org/testing/lksctp-tools/sctp_test.1.en.html).
 
+```bash
+# On the EPC HOST server (no need to be in containers)
+$ sudo sctp_test -H EPC_DOCKER_HOST_IP_ADDR -P 36412 -l
+local:addr=EPC_DOCKER_HOST_IP_ADDR, port=36412, family=2
+seed = 1612270835
+
+Starting tests...
+	socket(SOCK_SEQPACKET, IPPROTO_SCTP)  ->  sk=3
+	bind(sk=3, [a:EPC_DOCKER_HOST_IP_ADDR,p:36412])  --  attempt 1/10
+	listen(sk=3,backlog=100)
+Server: Receiving packets.
+	recvmsg(sk=3) 
+...
+```
+
+```bash
+# On the eNB server
+$ sudo sctp_test -H ENB_IP_ADDR -P 36412 -h EPC_DOCKER_HOST_IP_ADDR -p 36412 -s
+remote:addr=EPC_DOCKER_HOST_IP_ADDR, port=36412, family=2
+local:addr=ENB_IP_ADDR, port=36412, family=2
+seed = 1612271200
+
+Starting tests...
+	socket(SOCK_SEQPACKET, IPPROTO_SCTP)  ->  sk=3
+	bind(sk=3, [a:192.168.18.199,p:36412])  --  attempt 1/10
+Client: Sending packets.(1/10)
+....
+```
+## 1.2. Between gNB and the EPC containers ##
+
 The gNB server **SHALL** see the SPGW-U containers.
 
 ```bash
@@ -80,6 +115,8 @@ PING 192.168.61.133 (192.168.61.133) 56(84) bytes of data.
 rtt min/avg/max/mdev = 0.233/0.261/0.306/0.032 ms
 ```
 
+## 1.3. Between eNB and gNB ##
+
 The gNB server **SHALL** also see the eNB through a **SCTP** connection.
 
 I strongly recommend to do this, especially if you are using CentOS/RHEL servers for eNB and gNB.
@@ -92,6 +129,34 @@ sudo iptables -t filter -F
 sudo iptables -t mangle -F
 sudo iptables -t raw -F
 sudo iptables -t security -F
+```
+
+```bash
+# on the eNB server
+$ sudo sctp_test -H ENB_IP_ADDR -P 36422 -l
+local:addr=ENB_IP_ADDR, port=36422, family=2
+seed = 1612271429
+
+Starting tests...
+	socket(SOCK_SEQPACKET, IPPROTO_SCTP)  ->  sk=3
+	bind(sk=3, [a:ENB_IP_ADDR,p:36422])  --  attempt 1/10
+	listen(sk=3,backlog=100)
+Server: Receiving packets.
+...
+```
+
+```bash
+# on the gNB server
+$ sudo sctp_test -H GNB_IP_ADDR -P 36422 -h ENB_IP_ADDR -p 36422 -s
+remote:addr=ENB_IP_ADDR, port=36422, family=2
+local:addr=GNB_IP_ADDR, port=36422, family=2
+seed = 1612271431
+
+Starting tests...
+	socket(SOCK_SEQPACKET, IPPROTO_SCTP)  ->  sk=3
+	bind(sk=3, [a:GNB_IP_ADDR,p:36422])  --  attempt 1/10
+Client: Sending packets.(1/10)
+...
 ```
 
 # 2. Configuring your eNB and gNB #
