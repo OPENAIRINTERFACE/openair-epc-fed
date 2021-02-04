@@ -219,4 +219,5 @@ We used `2020.w51_2` at the time of writing, but any newer tag would be better. 
 
 # 3. Link to video #
 
-TODO: link to youtube upload.
+A video is available on [Youtube](https://youtu.be/bnhguk6CfOk).
+
