@@ -16,24 +16,31 @@
 
 At the time of writing (2020 / 10 / 27), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
 
-**cNF Name** | **Branch Name** | **Commit at time of writing**              | Ubuntu18 | CentOS7 | CentOS8
------------- | --------------- | ------------------------------------------ | -------- | ------- | -------
-HSS          | `develop`       | `b55a2f24909c05b4f31ef62dacb3c059d5d54990` | X        | X       | X
-MME          | `develop`       | `d02307d162da457a6d06e9409c8a5cdc143b1fdb` | X        | X       | X
-SPGW-C       | `develop`       | `67a286bf7453b95fdf8deb9b81ae53521825c29b` | X        |         | X
-SPGW-U-TINY  | `develop`       | `083899c6047b058f9b5bc9bdee31d235646d73bc` | X        |         | X
+**UPDATE: 2021/02/08 --> this tutorial is still valid for the following tags**
+
+**For later tags, please refer to the MAGMA-based tutorial.**
+
+**cNF Name** | **Branch Name** | **Tags**   | **Commit at time of writing**              | Ubuntu18 | CentOS7 | CentOS8
+------------ | --------------- | ---------- | ------------------------------------------ | -------- | ------- | -------
+HSS          | `develop`       | `2021.w03` | `9ed4f34fd73d674cd96eaeb5730d9dbda098b0a1` | X        | X       | X
+HSS          | `master`        | `v1.1.1`   | `1699b6a1565aa8df925dd04b5d632b49ebf24fc8` | X        | X       | X
+MME          | `develop`       | `2020.w47` | `82b11abbd83a346bae220517f09fe8e4233db76b` | X        | X       | X
+SPGW-C       | `develop`       | `2021.w04` | `ab1d7f17ac632f06af9ef27f4fb85541051bf974` | X        |         | X
+SPGW-C       | `master`        | `v1.1.0`   | `79378aeedebec30f66d6f7783d90103686f4fabb` | X        |         | X
+SPGW-U-TINY  | `develop`       | `2021.w03` | `e128259dde256e545ff947d177d82dd597c5a483` | X        |         | X
+SPGW-U-TINY  | `master`        | `v1.1.0`   | `c6c4e189d4ec32f84a326af39e37ecd32e962022` | X        |         | X
 
 ```bash
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
-$ git checkout master
-$ git pull origin master
-$ ./scripts/syncComponents.sh
+$ git checkout 2021.w06
+$ ./scripts/syncComponents.sh --hss-branch v1.1.1 --mme-branch 2020.w47 \
+                              --spgwc-branch v1.1.0 --spgwu-tiny-branch v1.1.0
 ---------------------------------------------------------
-OAI-HSS    component branch : develop
-OAI-MME    component branch : develop
-OAI-SPGW-C component branch : develop
-OAI-SPGW-U component branch : develop
+OAI-HSS    component branch : v1.1.1
+OAI-MME    component branch : 2020.w47
+OAI-SPGW-C component branch : v1.1.0
+OAI-SPGW-U component branch : v1.1.0
 ---------------------------------------------------------
 ....
 ```
@@ -82,7 +89,7 @@ oai-hss                 production             5b277bf98abe        1 minute ago 
 
 ```bash
 $ docker build --target oai-hss --tag oai-hss:production \
-               --file component/oai-hss/docker/Dockerfile.centos8 .
+               --file component/oai-hss/docker/Dockerfile.centos8 component/oai-hss
 $ docker image prune --force
 $ docker image ls
 oai-hss                 production             5fa77e2b6b94        1 minute ago          517MB
@@ -96,7 +103,7 @@ oai-hss                 production             5fa77e2b6b94        1 minute ago 
 ```bash
 $ docker build --target oai-mme --tag oai-mme:production \
                --file component/oai-mme/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" .
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-mme
 $ docker image prune --force
 $ docker image ls
 oai-mme                 prodution              45254be9f987        1 minute ago          256MB
@@ -107,7 +114,7 @@ oai-mme                 prodution              45254be9f987        1 minute ago 
 
 ```bash
 $ docker build --target oai-mme --tag oai-mme:production \
-               --file component/oai-mme/docker/Dockerfile.centos7 .
+               --file component/oai-mme/docker/Dockerfile.centos7 component/oai-mme
 $ docker image prune --force
 $ docker image ls
 oai-mme                 prodution              4133e75b6fc4        1 minute ago          406MB
@@ -118,7 +125,7 @@ oai-mme                 prodution              4133e75b6fc4        1 minute ago 
 
 ```bash
 $ docker build --target oai-mme --tag oai-mme:production \
-               --file component/oai-mme/docker/Dockerfile.centos8 .
+               --file component/oai-mme/docker/Dockerfile.centos8 component/oai-mme
 $ docker image prune --force
 $ docker image ls
 oai-mme                 prodution              413cec7d8f3b        1 minute ago          412MB
@@ -132,7 +139,7 @@ oai-mme                 prodution              413cec7d8f3b        1 minute ago 
 ```bash
 $ docker build --target oai-spgwc --tag oai-spgwc:production \
                --file component/oai-spgwc/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" .
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwc
 $ docker image prune --force
 $ docker image ls
 oai-spgwc               production             b1ba7dd16bc5        1 minute ago          218MB
@@ -145,7 +152,7 @@ oai-spgwc               production             b1ba7dd16bc5        1 minute ago 
 
 ```bash
 $ docker build --target oai-spgwc --tag oai-spgwc:production \
-               --file component/oai-spgwc/docker/Dockerfile.centos8 .
+               --file component/oai-spgwc/docker/Dockerfile.centos8 component/oai-spgwc
 $ docker image prune --force
 $ docker image ls
 oai-spgwc               production             15ad64676b1f        1 minute ago          379MB
@@ -159,7 +166,7 @@ oai-spgwc               production             15ad64676b1f        1 minute ago 
 ```bash
 $ docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:production \
                --file component/oai-spgwu-tiny/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" .
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwu-tiny
 $ docker image prune --force
 $ docker image ls
 oai-spgwu-tiny          production             588e14481f2b        1 minute ago          220MB
@@ -172,7 +179,7 @@ oai-spgwu-tiny          production             588e14481f2b        1 minute ago 
 
 ```bash
 $ docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:production \
-               --file component/oai-spgwu-tiny/docker/Dockerfile.centos8 .
+               --file component/oai-spgwu-tiny/docker/Dockerfile.centos8 component/oai-spgwu-tiny
 $ docker image prune --force
 $ docker image ls
 oai-spgwu-tiny          production             f2d0a07fba2c        1 minute ago          378MB
