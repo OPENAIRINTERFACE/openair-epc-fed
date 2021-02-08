@@ -26,13 +26,13 @@
 
 # 1.  Retrieve the proper code version on the OAI-CN part #
 
-At the time of writing (2021 / 02 / 01), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
+At the time of writing (2021 / 02 / 08), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
 
 **cNF Name** | **Branch Name** | **Commit at time of writing**              | **TAG**  | Ubuntu18 |
 ------------ | --------------- | ------------------------------------------ | -------- | -------- |
-HSS          | `develop`       | `9ed4f34fd73d674cd96eaeb5730d9dbda098b0a1` | 2021.w03 | X        |
-SPGW-C       | `develop`       | `ab1d7f17ac632f06af9ef27f4fb85541051bf974` | 2021.w04 | X        |
-SPGW-U-TINY  | `develop`       | `e128259dde256e545ff947d177d82dd597c5a483` | 2021.w03 | X        |
+HSS          | `master`        | `1699b6a1565aa8df925dd04b5d632b49ebf24fc8` | `v1.1.1` | X        |
+SPGW-C       | `master`        | `79378aeedebec30f66d6f7783d90103686f4fabb` | `v1.1.0` | X        |
+SPGW-U-TINY  | `master`        | `c6c4e189d4ec32f84a326af39e37ecd32e962022` | `v1.1.0` | X        |
 
 **Please go the `official_magma_dsTest_pipeline` branch !**
 
@@ -40,12 +40,13 @@ SPGW-U-TINY  | `develop`       | `e128259dde256e545ff947d177d82dd597c5a483` | 20
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
 $ git checkout official_magma_dsTest_pipeline
-$ git pull origin official_magma_dsTest_pipeline
-$ ./scripts/syncComponents.sh
+# or
+$ git checkout magma.2021.w06
+$ ./scripts/syncComponents.sh --hss-branch v1.1.1 --spgwc-branch v1.1.0 --spgwu-tiny-branch v1.1.0
 ---------------------------------------------------------
-OAI-HSS    component branch : develop
-OAI-SPGW-C component branch : develop
-OAI-SPGW-U component branch : develop
+OAI-HSS    component branch : v1.1.1
+OAI-SPGW-C component branch : v1.1.0
+OAI-SPGW-U component branch : v1.1.0
 ---------------------------------------------------------
 ....
 ```
