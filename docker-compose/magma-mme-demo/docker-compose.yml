@@ -93,6 +93,11 @@ services:
             - ./mme.conf:/magma-mme/etc/mme.conf
             - ./mme-cfg.sh:/magma-mme/scripts/mme-cfg.sh
         entrypoint: /bin/bash -c "cd /magma-mme/scripts; ./mme-cfg.sh"
+        healthcheck:
+            test: /bin/bash -c "pgrep oai_mme"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     oai_spgwc:
         image: oai-spgwc:production
