@@ -37,6 +37,7 @@ class spgwcConfigGen():
 		self.dns1 = ''
 		self.dns2 = ''
 		self.s5p5 = 'auto'
+		self.env_list = False
 
 	def GenerateSpgwcConfigurer(self):
 		apns = self.apn_list.split();
@@ -256,6 +257,26 @@ class spgwcConfigGen():
 			spgwcFile.write('exit 0\n')
 			spgwcFile.close()
 
+	def GenerateSpgwcEnvList(self):
+		conf_file = open('./spgw_c_env.list', 'w')
+		conf_file.write('# Environment Variables used by the OAI-SPGW-C Entrypoint Script\n')
+		conf_file.write('SGW_INTERFACE_NAME_FOR_S11=eth0\n')
+		conf_file.write('PGW_INTERFACE_NAME_FOR_SX=eth0\n')
+		conf_file.write('DEFAULT_DNS_IPV4_ADDRESS=192.168.18.129\n')
+		conf_file.write('DEFAULT_DNS_SEC_IPV4_ADDRESS=8.8.4.4\n')
+		conf_file.write('PUSH_PROTOCOL_OPTION=false\n')
+		conf_file.write('APN_NI_1=apn1.carrier.com\n')
+		conf_file.write('APN_NI_2=apn2.carrier.com\n')
+		conf_file.write('DEFAULT_APN_NI_1=apn1.carrier.com\n')
+		conf_file.write('UE_IP_ADDRESS_POOL_1=12.0.0.2 - 12.0.0.254\n')
+		conf_file.write('UE_IP_ADDRESS_POOL_2=12.1.1.2 - 12.1.1.254\n')
+		conf_file.write('MCC=320\n')
+		conf_file.write('MNC=230\n')
+		conf_file.write('MNC03=230\n')
+		conf_file.write('TAC=5556\n')
+		conf_file.write('GW_ID=1\n')
+		conf_file.write('REALM=openairinterface.org\n')
+		conf_file.close()
 
 #-----------------------------------------------------------
 # Usage()
@@ -316,6 +337,8 @@ while len(argvs) > 1:
 		mySpgwcCfg.fromDockerFile = True
 	elif re.match('^\-\-s5p5_production', myArgv, re.IGNORECASE):
 		mySpgwcCfg.s5p5 = 'prod'
+	elif re.match('^\-\-env_list', myArgv, re.IGNORECASE):
+		mySpgwcCfg.env_list = True
 	else:
 		Usage()
 		sys.exit('Invalid Parameter: ' + myArgv)
@@ -347,7 +370,10 @@ if mySpgwcCfg.kind == 'SPGW-C':
 		Usage()
 		sys.exit('missing prefix')
 	else:
-		mySpgwcCfg.GenerateSpgwcConfigurer()
+		if mySpgwcCfg.env_list:
+			mySpgwcCfg.GenerateSpgwcEnvList()
+		else:
+			mySpgwcCfg.GenerateSpgwcConfigurer()
 		sys.exit(0)
 else:
 	Usage()
