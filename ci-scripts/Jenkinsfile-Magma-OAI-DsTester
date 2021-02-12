@@ -35,10 +35,10 @@ def hssTag = 'develop'
 def hssBranch = 'develop'
 def magmaMmeTag = 'master'
 // No branch for MAGMA
-def spgwcTag = 'develop'
-def spgwcBranch = 'develop'
-def spgwuTag = 'develop'
-def spgwuBranch = 'develop'
+def spgwcTag = 'v1.1.0'
+def spgwcBranch = 'master'
+def spgwuTag = 'v1.1.0'
+def spgwuBranch = 'master'
 
 // Flags
 def scmEvent = false
