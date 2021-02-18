@@ -141,7 +141,7 @@ services:
             PGW_INTERFACE_NAME_FOR_SX: eth0
             DEFAULT_DNS_IPV4_ADDRESS: 192.168.18.129
             DEFAULT_DNS_SEC_IPV4_ADDRESS: 8.8.4.4
-            PUSH_PROTOCOL_OPTION: 'yes'
+            PUSH_PROTOCOL_OPTION: 'true'
             APN_NI_1: apn1.carrier.com
             APN_NI_2: apn2.carrier.com
             DEFAULT_APN_NI_1: apn1.carrier.com

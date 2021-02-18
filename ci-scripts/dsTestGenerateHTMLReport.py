@@ -37,6 +37,8 @@ class HtmlReport():
 		self.file = open(cwd + '/test_results_oai_epc.html', 'w')
 		self.generateHeader()
 
+		self.deploymentSummaryHeader()
+
 		finalStatus = self.testSummaryHeader()
 		self.testSummaryDetails()
 		self.testSummaryFooter()
@@ -61,6 +63,7 @@ class HtmlReport():
 		self.file.write('  <title>OAI Core Network Test Results for ' + self.job_name + ' job build #' + self.job_id + '</title>\n')
 		self.file.write('</head>\n')
 		self.file.write('<body><div class="container">\n')
+		self.file.write('  <br>\n')
 		self.file.write('  <table width = "100%" style="border-collapse: collapse; border: none;">\n')
 		self.file.write('   <tr style="border-collapse: collapse; border: none;">\n')
 		self.file.write('     <td style="border-collapse: collapse; border: none;">\n')
@@ -80,6 +83,139 @@ class HtmlReport():
 		self.file.write('  <div class="well well-lg">End of Test Report -- Copyright <span class="glyphicon glyphicon-copyright-mark"></span> 2020 <a href="http://www.openairinterface.org/">OpenAirInterface</a>. All Rights Reserved.</div>\n')
 		self.file.write('</div></body>\n')
 		self.file.write('</html>\n')
+
+	def deploymentSummaryHeader(self):
+		self.file.write('  <h2>Deployment Summary</h2>\n')
+		cwd = os.getcwd()
+		if os.path.isfile(cwd + '/archives/deployment_status.log'):
+			cmd = 'egrep -c "DEPLOYMENT: OK" archives/deployment_status.log || true'
+			status = False
+			ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+			if ret.stdout is not None:
+				if ret.stdout.strip() == '1':
+					status = True
+			if status:
+				self.file.write('  <div class="alert alert-success">\n')
+				self.file.write('    <strong>Successful Deployment! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('  </div>\n')
+			else:
+				self.file.write('  <div class="alert alert-danger">\n')
+				self.file.write('    <strong>Failed Deployment! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('  </div>\n')
+		else:
+			self.file.write('  <div class="alert alert-warning">\n')
+			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+			self.file.write('  </div>\n')
+		self.file.write('  <br>\n')
+		self.file.write('  <button data-toggle="collapse" data-target="#deployment-details">More details on Deployment</button>\n')
+		self.file.write('  <br>\n')
+		self.file.write('  <div id="deployment-details" class="collapse">\n')
+		self.file.write('  <br>\n')
+		self.file.write('  <table class="table-bordered" width = "80%" align = "center" border = 1>\n')
+		self.file.write('     <tr bgcolor = "#33CCFF" >\n')
+		self.file.write('       <th>Container Name</th>\n')
+		self.file.write('       <th>Used Image Tag</th>\n')
+		self.file.write('       <th>Image Creation Date</th>\n')
+		self.file.write('       <th>Used Image Size</th>\n')
+		self.file.write('       <th>Configuration Status</th>\n')
+		self.file.write('     </tr>\n')
+		self.addImageRow('cassandra')
+		self.addImageRow('oai_hss')
+		self.addImageRow('oai_mme')
+		self.addImageRow('oai_spgwc')
+		self.addImageRow('oai_spgwu')
+		self.file.write('  </table>\n')
+		self.file.write('  </div>\n')
+
+	def addImageRow(self, imageInfoPrefix):
+		cwd = os.getcwd()
+		if imageInfoPrefix == 'oai_hss':
+			containerName = 'oai-hss'
+			tagPattern = 'OAI_HSS_TAG'
+			statusPrefix = 'hss'
+		if imageInfoPrefix == 'oai_mme':
+			containerName = 'oai-mme'
+			tagPattern = 'OAI_MME_TAG'
+			statusPrefix = 'hss'
+		if imageInfoPrefix == 'oai_spgwc':
+			containerName = 'oai-spgwc'
+			tagPattern = 'OAI_SPGWC_TAG'
+			statusPrefix = 'spgwc'
+		if imageInfoPrefix == 'oai_spgwu':
+			containerName = 'oai-spgwu-tiny'
+			tagPattern = 'OAI_SPGWU_TAG'
+			statusPrefix = 'spgwu'
+		if imageInfoPrefix == 'cassandra':
+			containerName = imageInfoPrefix
+			tagPattern = 'N/A'
+		if imageInfoPrefix == 'redis':
+			containerName = imageInfoPrefix
+			tagPattern = 'N/A'
+		if os.path.isfile(cwd + '/archives/' + imageInfoPrefix + '_image_info.log'):
+			usedTag = ''
+			createDate = ''
+			size = ''
+			with open(cwd + '/archives/' + imageInfoPrefix + '_image_info.log') as imageLog:
+				for line in imageLog:
+					line = line.strip()
+					result = re.search(tagPattern + ': (?P<tag>[a-zA-Z0-9\-\_:]+)', line)
+					if result is not None:
+						usedTag = result.group('tag')
+					result = re.search('Date = (?P<date>[a-zA-Z0-9\-\_:]+)', line)
+					if result is not None:
+						createDate = result.group('date')
+					result = re.search('Size = (?P<size>[0-9]+) bytes', line)
+					if result is not None:
+						sizeInt = int(result.group('size'))
+						if sizeInt < 1000000:
+							sizeInt = int(sizeInt / 1000)
+							size = str(sizeInt) + ' kB'
+						else:
+							sizeInt = int(sizeInt / 1000000)
+							size = str(sizeInt) + ' MB'
+			imageLog.close()
+			configState = 'KO'
+			cmd = 'egrep -c "STATUS: healthy" archives/' + statusPrefix + '_config.log || true'
+			ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+			if ret.stdout is not None:
+				if ret.stdout.strip() == '1':
+					configState = 'OK'
+			self.file.write('     <tr>\n')
+			self.file.write('       <td>' + containerName + '</td>\n')
+			self.file.write('       <td>' + usedTag + '</td>\n')
+			self.file.write('       <td>' + createDate + '</td>\n')
+			self.file.write('       <td>' + size + '</td>\n')
+			if configState == 'OK':
+				self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">' + configState + '</font></b></td>\n')
+			else:
+				self.file.write('       <td bgcolor = "Red"><b><font color="white">' + configState + '</font></b></td>\n')
+			self.file.write('     </tr>\n')
+		else:
+			if imageInfoPrefix == 'cassandra':
+				self.file.write('     <tr>\n')
+				self.file.write('       <td>' + containerName + '</td>\n')
+				self.file.write('       <td>cassandra:2.1</td>\n')
+				self.file.write('       <td>N/A</td>\n')
+				self.file.write('       <td>496MB</td>\n')
+				configState = 'KO'
+				cmd = 'egrep -c "STATUS: healthy" archives/cassandra_status.log || true'
+				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+				if ret.stdout is not None:
+					if ret.stdout.strip() == '1':
+						configState = 'OK'
+				if configState == 'OK':
+					self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+				else:
+					self.file.write('       <td bgcolor = "Red"><b><font color="white">KO</font></b></td>\n')
+				self.file.write('     </tr>\n')
+			else:
+				self.file.write('     <tr>\n')
+				self.file.write('       <td>' + containerName + '</td>\n')
+				self.file.write('       <td>UNKNOWN</td>\n')
+				self.file.write('       <td>N/A</td>\n')
+				self.file.write('       <td>N/A</td>\n')
+				self.file.write('       <td bgcolor = "DarkOrange"><b><font color="white">UNKNOW</font></b></td>\n')
+				self.file.write('     </tr>\n')
 
 	def testSummaryHeader(self):
 		self.file.write('  <h2>DS Tester Summary</h2>\n')
