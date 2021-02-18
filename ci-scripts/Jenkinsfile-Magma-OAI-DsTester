@@ -157,12 +157,12 @@ pipeline {
           sh 'sed -e "s#HSS_IMAGE_TAG#' + hssTag + '#" -e "s#MAGMA_MME_IMAGE_TAG#' + magmaMmeTag + '#" -e "s#SPGWC_IMAGE_TAG#' + spgwcTag + '#" -e "s#SPGWU_IMAGE_TAG#' + spgwuTag + '#" ci-scripts/dsTesterDockerCompose/docker-compose.tplt > ci-scripts/dsTesterDockerCompose/docker-compose.yml'
           if (ret == '1') {
             // In Mohit's branch --> Separate HSS Realm
-            sh 'sed -i -e "s@#SEPARATE_HSS_REALM@@" ci-scripts/dsTesterDockerCompose/mme.conf'
+            sh 'sed -e "s@#SEPARATE_HSS_REALM@@" ci-scripts/dsTesterDockerCompose/mme.conf.tplt > ci-scripts/dsTesterDockerCompose/mme.conf'
             // And we enable the NSA scenario
             // Temporary once PR is accepted, to be removed
             sh 'sed -i -e "29,32s@^#@@" ' + dsTestFrameworkLocation + '/ds-tests/4g-prod-validation.list'
           } else {
-            sh 'sed -i -e "s@#COMMON_HSS_REALM@@" ci-scripts/dsTesterDockerCompose/mme.conf'
+            sh 'sed -e "s@#COMMON_HSS_REALM@@" ci-scripts/dsTesterDockerCompose/mme.conf.tplt > ci-scripts/dsTesterDockerCompose/mme.conf'
           }
           sh 'cp component/oai-hss/src/hss_rel14/db/oai_db.cql ci-scripts/dsTesterDockerCompose'
           // Entrypoints are modified to be inactive for dsTester framework
