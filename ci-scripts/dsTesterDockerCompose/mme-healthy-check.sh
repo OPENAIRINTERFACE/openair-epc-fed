@@ -1,7 +1,7 @@
 #!/bin/bash
 
 STATUS=0
-NB_UNREPLACED_AT=`cat /openair-mme/etc/*.conf | grep -c @ || true`
+NB_UNREPLACED_AT=`cat /openair-mme/etc/*.conf | grep -v 'IPv4@' | grep -c @ || true`
 if [ $NB_UNREPLACED_AT -ne 0 ]
 then
   STATUS=-1
