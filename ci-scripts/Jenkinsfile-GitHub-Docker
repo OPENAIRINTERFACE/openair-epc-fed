@@ -346,7 +346,7 @@ pipeline {
             }
             sh 'docker rm cicd-db-init'
 
-            sh 'docker-compose up -d cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
+            sh 'docker-compose up -d cicd_oai_mme cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
             sh 'sleep 20'
             // Do a check on number of healthy containers
             // 5 == cassandra + hss + mme + spgwc + spgwu
@@ -367,13 +367,6 @@ pipeline {
               sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-cassandra >> archives/cassandra_status.log'
             } catch (Exception e) {
               sh 'echo "STATUS: KO" >> archives/cassandra_status.log'
-            }
-            // Check status on redis.
-            try {
-              sh 'docker top cicd-redis | grep -c redis-server > archives/redis_status.log'
-              sh 'echo "STATUS: OK" >> archives/redis_status.log'
-            } catch (Exception e) {
-              sh 'echo "STATUS: KO" >> archives/redis_status.log'
             }
             // Do docker logs to recover the configuration results
             try {
