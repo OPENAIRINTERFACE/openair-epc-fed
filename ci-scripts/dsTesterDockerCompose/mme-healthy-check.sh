@@ -13,4 +13,10 @@ then
   STATUS=-1
 fi
 
+NB_NOT_FOUND_PACKAGES=`ldd /magma-mme/bin/oai_mme /magma-mme/bin/sctpd | egrep -c "not found" || true`
+if [ $NB_NOT_FOUND_PACKAGES -ne 0 ]
+then
+  STATUS=-1
+fi
+
 exit $STATUS

@@ -35,10 +35,10 @@ def hssTag = 'develop'
 def hssBranch = 'develop'
 def magmaMmeTag = 'master'
 // No branch for MAGMA
-def spgwcTag = 'v1.1.0'
-def spgwcBranch = 'master'
-def spgwuTag = 'v1.1.0'
-def spgwuBranch = 'master'
+def spgwcTag = 'develop'
+def spgwcBranch = 'develop'
+def spgwuTag = 'develop'
+def spgwuBranch = 'develop'
 
 // Flags
 def scmEvent = false
@@ -190,7 +190,8 @@ pipeline {
             sh 'docker rm cicd-db-init'
 
             sh 'docker-compose up -d cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
-            sh 'sleep 20'
+            // All healthy checks should be done after 50 seconds
+            sh 'sleep 50'
             // Do a check on number of healthy containers
             // 5 == cassandra + hss + mme + spgwc + spgwu
             ret = sh returnStdout: true, script: 'docker-compose ps -a | grep -v unhealthy | grep -c healthy || true'
