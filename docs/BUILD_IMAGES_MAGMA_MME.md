@@ -110,12 +110,7 @@ oai-spgwu-tiny          production             588e14481f2b        1 minute ago 
 
 ## 6.1. Get the NSA-Support source code ##
 
-**At the time of writing (2021-02-01), the NSA Support feature was not yet been merged into the
-official MAGMA repository.**
-
-First check the status of the [NSA-Addition Pull Request](https://github.com/magma/magma/pull/4513).
-
-If it has been merged, then go ahead and clone MAGMA official repository:
+**Important Update (2021 / 03 / 20), the NSA Support was merged into `master`.**
 
 ```bash
 $ cd ~
@@ -124,16 +119,7 @@ $ cd magma
 $ git log | grep -i NSA
 ```
 
-You should see Mohit's Pull request being merged.
-
-If this Pull Request has not been merged, then recover from Mohit's forked repository.
-
-```bash
-$ cd ~
-$ git clone https://github.com/Vyas20/magma.git
-$ cd magma
-$ git checkout NSA-MERGE
-```
+You should see Mohit's Pull request being merged (`[Converged MME]NSA-Addition (#4513)`).
 
 ## 6.2. Prepare the source code for a MAGMA-MME Docker Image build ##
 
