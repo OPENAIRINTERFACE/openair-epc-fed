@@ -268,6 +268,7 @@ class HtmlReport():
 				self.file.write('    <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 		else:
+			finalStatusOK = False
 			self.file.write('  <div class="alert alert-warning">\n')
 			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 			self.file.write('  </div>\n')
@@ -306,11 +307,12 @@ class HtmlReport():
 					result = re.search('Running ', line)
 					if result is not None:
 						testName = line.replace('Running ', '')
-					result = re.search('status:', line)
+						print(testName)
+					result = re.search('status:|caught exception', line)
 					if result is not None:
 						self.file.write('     <tr>\n')
 						self.file.write('       <td>' + testName + '</td>\n')
-						result = re.search('FAILED', line)
+						result = re.search('FAILED|caught exception', line)
 						if result is not None:
 							# currently waiver for Multi-PDN test
 							result = re.search('example_app_s1_multi_pdn_enb', line)
