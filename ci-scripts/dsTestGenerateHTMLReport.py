@@ -66,16 +66,23 @@ class HtmlReport():
 		self.file.write('  <br>\n')
 		self.file.write('  <table width = "100%" style="border-collapse: collapse; border: none;">\n')
 		self.file.write('   <tr style="border-collapse: collapse; border: none;">\n')
+		# SVG has a invisible background color -- adding it.
+		self.file.write('     <td bgcolor="#5602a4" style="border-collapse: collapse; border: none;">\n')
+		self.file.write('       <a href="https://www.magmacore.org/">\n')
+		self.file.write('          <img src="https://www.magmacore.org/img/magma-logo.svg" alt="" border="none" height=50 width=150>\n')
+		self.file.write('          </img>\n')
+		self.file.write('       </a>\n')
+		self.file.write('     </td>\n')
+		self.file.write('     </td>\n')
+		self.file.write('     <td style="border-collapse: collapse; border: none; vertical-align: center;">\n')
+		self.file.write('       <b><font size = "6">Job Summary -- Job: ' + self.job_name + ' -- Build-ID: <a href="' + self.job_url + '">' + self.job_id + '</a></font></b>\n')
+		self.file.write('     </td>\n')
 		self.file.write('     <td style="border-collapse: collapse; border: none;">\n')
 		self.file.write('       <a href="http://www.openairinterface.org/">\n')
 		self.file.write('         <img src="http://www.openairinterface.org/wp-content/uploads/2016/03/cropped-oai_final_logo2.png" alt="" border="none" height=50 width=150>\n')
 		self.file.write('         </img>\n')
 		self.file.write('       </a>\n')
-		self.file.write('     </td>\n')
-		self.file.write('     <td style="border-collapse: collapse; border: none; vertical-align: center;">\n')
-		self.file.write('       <b><font size = "6">Job Summary -- Job: ' + self.job_name + ' -- Build-ID: <a href="' + self.job_url + '">' + self.job_id + '</a></font></b>\n')
-		self.file.write('     </td>\n')
-		self.file.write('   </tr>\n')
+		self.file.write('    </tr>\n')
 		self.file.write('  </table>\n')
 		self.file.write('  <br>\n')
 
@@ -120,8 +127,9 @@ class HtmlReport():
 		self.file.write('       <th>Configuration Status</th>\n')
 		self.file.write('     </tr>\n')
 		self.addImageRow('cassandra')
+		self.addImageRow('redis')
+		self.addImageRow('magma_mme')
 		self.addImageRow('oai_hss')
-		self.addImageRow('oai_mme')
 		self.addImageRow('oai_spgwc')
 		self.addImageRow('oai_spgwu')
 		self.file.write('  </table>\n')
@@ -129,13 +137,13 @@ class HtmlReport():
 
 	def addImageRow(self, imageInfoPrefix):
 		cwd = os.getcwd()
+		if imageInfoPrefix == 'magma_mme':
+			containerName = 'magma-mme'
+			tagPattern = 'MAGMA_MME_TAG'
+			statusPrefix = 'mme'
 		if imageInfoPrefix == 'oai_hss':
 			containerName = 'oai-hss'
 			tagPattern = 'OAI_HSS_TAG'
-			statusPrefix = 'hss'
-		if imageInfoPrefix == 'oai_mme':
-			containerName = 'oai-mme'
-			tagPattern = 'OAI_MME_TAG'
 			statusPrefix = 'hss'
 		if imageInfoPrefix == 'oai_spgwc':
 			containerName = 'oai-spgwc'
@@ -208,6 +216,23 @@ class HtmlReport():
 				else:
 					self.file.write('       <td bgcolor = "Red"><b><font color="white">KO</font></b></td>\n')
 				self.file.write('     </tr>\n')
+			elif imageInfoPrefix == 'redis':
+				self.file.write('     <tr>\n')
+				self.file.write('       <td>' + containerName + '</td>\n')
+				self.file.write('       <td>redis:6.0.5</td>\n')
+				self.file.write('       <td>N/A</td>\n')
+				self.file.write('       <td>104MB</td>\n')
+				configState = 'KO'
+				cmd = 'grep -c 2 archives/redis_status.log || true'
+				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
+				if ret.stdout is not None:
+					if ret.stdout.strip() == '1':
+						configState = 'OK'
+				if configState == 'OK':
+					self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
+				else:
+					self.file.write('       <td bgcolor = "Red"><b><font color="white">KO</font></b></td>\n')
+				self.file.write('     </tr>\n')
 			else:
 				self.file.write('     <tr>\n')
 				self.file.write('       <td>' + containerName + '</td>\n')
@@ -243,6 +268,7 @@ class HtmlReport():
 				self.file.write('    <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 		else:
+			finalStatusOK = False
 			self.file.write('  <div class="alert alert-warning">\n')
 			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 			self.file.write('  </div>\n')
@@ -251,7 +277,9 @@ class HtmlReport():
 	def testSummaryDetails(self):
 		self.file.write('  <br>\n')
 		self.file.write('  <button data-toggle="collapse" data-target="#ds-tester-details">More details on DsTester results</button>\n')
+		self.file.write('  <br>\n')
 		self.file.write('  <div id="ds-tester-details" class="collapse">\n')
+		self.file.write('  <br>\n')
 		self.file.write('  <table class="table-bordered" width = "60%" align = "center" border = 1>\n')
 		self.file.write('     <tr bgcolor = "#33CCFF" >\n')
 		self.file.write('       <th>Test Name</th>\n')
@@ -279,11 +307,12 @@ class HtmlReport():
 					result = re.search('Running ', line)
 					if result is not None:
 						testName = line.replace('Running ', '')
-					result = re.search('status:', line)
+						print(testName)
+					result = re.search('status:|caught exception', line)
 					if result is not None:
 						self.file.write('     <tr>\n')
 						self.file.write('       <td>' + testName + '</td>\n')
-						result = re.search('FAILED', line)
+						result = re.search('FAILED|caught exception', line)
 						if result is not None:
 							# currently waiver for Multi-PDN test
 							result = re.search('example_app_s1_multi_pdn_enb', line)
@@ -342,7 +371,11 @@ while len(argvs) > 1:
 		HTML.job_id = matchReg.group(1)
 	elif re.match('^\-\-job_url=(.+)$', myArgv, re.IGNORECASE):
 		matchReg = re.match('^\-\-job_url=(.+)$', myArgv, re.IGNORECASE)
-		HTML.job_url = matchReg.group(1)
+		job_url = matchReg.group(1)
+		result = re.search('oai-public.apps.5glab.nsa.eurecom.fr', job_url)
+		if result is not None:
+			job_url = job_url.replace('oai-public.apps.5glab.nsa.eurecom.fr','oai.eurecom.fr')
+		HTML.job_url = job_url
 	else:
 		sys.exit('Invalid Parameter: ' + myArgv)
 
