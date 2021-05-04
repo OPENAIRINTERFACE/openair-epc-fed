@@ -19,7 +19,7 @@
 
   It is also hosting some tutorials:
 
-  - [Simple Docker Deployment](./docs/DEPLOY_HOME.md)
+  - [Simple Docker Deployment using the OAI Legacy MME](./docs/DEPLOY_HOME.md)
   - [Deploying a whole EPC with MAGMA MME image](docs/DEPLOY_HOME_MAGMA_MME.md)
 
 # Licence info

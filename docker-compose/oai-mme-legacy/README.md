@@ -160,6 +160,6 @@ If you have to change, please respect both formats.
 
 The network configuration on eNB server(s) still is valid.
 
-See [here](../../docs/CONFIGURE_CONTAINERS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
+See [here](../../docs/CONFIGURE_NETWORKS.md#step-2-create-a-route-on-your-enbgnb-servers) for the commands to do
 
-And see [here](../../docs/CONFIGURE_CONTAINERS.md#verify-your-network-configuration) for commands to verify.
+And see [here](../../docs/CONFIGURE_NETWORKS.md#verify-your-network-configuration) for commands to verify.

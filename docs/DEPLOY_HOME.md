@@ -12,17 +12,30 @@
   </tr>
 </table>
 
+In these pages, we are describing how to build and deploy an LTE EPC using the **OAI Legacy MME**.
+
+# Why you should use this deployment? #
+
+-  It builds faster than the `MAGMA-MME` image.
+-  At the time of writing (2021-05-04), you need to connect the `OAI LTE-UE softmodem`.
+   -  Currently `OAI LTE-UE softmodem` does **NOT** connect with `MAGMA-MME`.
+-  You will deploy, connect your eNB(s), your COTS-UE(s),
+   - Then do your experiments and then stop everything.
+
+# Why should not be using this deployment? #
+
+-  You expect the whole EPC to be running for hours and days without any restart
+   - This MME is very leaky and not robust.
+-  You want the latest updates:
+   - We are **NOT** supporting maintenance on the legacy **OAI MME**.
+   - THe last valid tag on the MME is **2020.w47**.
+   - Our developers are now contributing to the **MAGMA-MME**.
+
+
 **Table of Contents**
 
 1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES.md)
 2.  [Building the Docker Images](./BUILD_IMAGES.md)
 3.  [Deploying using docker-compose](../docker-compose/oai-mme-legacy/README.md)
-4.  [Generating Traffic to a connected UE](./GENERATE_TRAFFIC.md)
-
-**If you are adventurous, you can do some manual configuration:**
-
-1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES.md)
-2.  [Building the Docker Images](./BUILD_IMAGES.md)
-3.  [Configuring the Containers](./CONFIGURE_CONTAINERS.md)
-4.  [Running the Network Functions](./RUN_CNF.md)
+4.  [Verify/Correct your network environment](./CONFIGURE_NETWORKS.md)
 5.  [Generating Traffic to a connected UE](./GENERATE_TRAFFIC.md)

@@ -28,25 +28,21 @@
 
 At the time of writing (2021 / 02 / 08), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
 
-**cNF Name** | **Branch Name** | **Commit at time of writing**              | **TAG**  | Ubuntu18 |
------------- | --------------- | ------------------------------------------ | -------- | -------- |
-HSS          | `master`        | `1699b6a1565aa8df925dd04b5d632b49ebf24fc8` | `v1.1.1` | X        |
-SPGW-C       | `master`        | `79378aeedebec30f66d6f7783d90103686f4fabb` | `v1.1.0` | X        |
-SPGW-U-TINY  | `master`        | `c6c4e189d4ec32f84a326af39e37ecd32e962022` | `v1.1.0` | X        |
-
-**Please go the `official_magma_dsTest_pipeline` branch !**
+**cNF Name** | **Branch Name** | **Tags**   | **Commit at time of writing**              | Ubuntu18 |
+------------ | --------------- | ---------- | ------------------------------------------ | -------- |
+HSS          | `develop`       | `2021.w10` | `93dfcbca245ec97652c4d62ba3913a899d956d68` | X        |
+SPGW-C       | `develop`       | `2021.w10` | `b10256535e47ffb86c86a8581d9c50b1f380dcf5` | X        |
+SPGW-U-TINY  | `develop`       | `2021.w10` | `acd293e616f879f4dacead152c59384d1e533167` | X        |
 
 ```bash
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
-$ git checkout official_magma_dsTest_pipeline
-# or
-$ git checkout magma.2021.w06
-$ ./scripts/syncComponents.sh --hss-branch v1.1.1 --spgwc-branch v1.1.0 --spgwu-tiny-branch v1.1.0
+$ git checkout 2021.w18
+$ ./scripts/syncComponents.sh --hss-branch 2021.w10 --spgwc-branch 2021.w10 --spgwu-tiny-branch 2021.w10
 ---------------------------------------------------------
-OAI-HSS    component branch : v1.1.1
-OAI-SPGW-C component branch : v1.1.0
-OAI-SPGW-U component branch : v1.1.0
+OAI-HSS    component branch : 2021.w10
+OAI-SPGW-C component branch : 2021.w10
+OAI-SPGW-U component branch : 2021.w10
 ---------------------------------------------------------
 ....
 ```
