@@ -34,7 +34,7 @@ SPGW-U-TINY  | `master`        | `v1.1.0`   | `c6c4e189d4ec32f84a326af39e37ecd32
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
 $ git checkout 2021.w06
-$ ./scripts/syncComponents.sh --hss-branch v1.1.1 --mme-branch 2020.w47 \
+$ ./scripts/syncComponentsLegacy.sh --hss-branch v1.1.1 --mme-branch 2020.w47 \
                               --spgwc-branch v1.1.0 --spgwu-tiny-branch v1.1.0
 ---------------------------------------------------------
 OAI-HSS    component branch : v1.1.1
@@ -48,8 +48,6 @@ OAI-SPGW-U component branch : v1.1.0
 **CAUTION: At the time of writing (2020 / 10 / 26), only HSS and MME have a full CentOS-7 support.**
 
 It means that if you are on a CentOS 7 host, you will need to build a CentOS8 image of SPGW-C / SPGW-U-TINY.
-
-**CAUTION: if you are using `develop` branches that are prior to 2020 week 44, please read [this page](./BUILD_IMAGES_PRE_2020_W44.md) instead.**
 
 # 2. Generic Parameters #
 
