@@ -493,7 +493,7 @@ pipeline {
           sh 'docker image prune --force'
         }
         // Generating the HTML report
-        sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+        sh 'python3 ./ci-scripts/dsTestGenerateHTMLReportLegacy.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
 
         // Zipping all archived log files
         sh "zip -r -qq fed_docker_logs.zip archives DS-TEST-RESULTS/*.tar DS-TEST-RESULTS/status.txt"

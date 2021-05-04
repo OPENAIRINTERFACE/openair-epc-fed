@@ -308,7 +308,7 @@ class HtmlReport():
 
 def Usage():
 	print('----------------------------------------------------------------------------------------------------------------------')
-	print('dsTestGenerateHTMLReport.py')
+	print('dsTestGenerateHTMLReportLegacy.py')
 	print('   Generate an HTML report for the Jenkins pipeline on openair-epc-fed.')
 	print('----------------------------------------------------------------------------------------------------------------------')
 	print('Usage: python3 generateHtmlReport.py [options]')
