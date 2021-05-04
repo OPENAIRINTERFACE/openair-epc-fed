@@ -27,8 +27,8 @@ In these pages, we are describing how to build and deploy an LTE EPC using the *
 -  You expect the whole EPC to be running for hours and days without any restart
    - This MME is very leaky and not robust.
 -  You want the latest updates:
-   - We are **NOT** supporting maintenance on the legacy **OAI MME**.
-   - THe last valid tag on the MME is **2020.w47**.
+   - We are **NO MORE** performing maintenance on the legacy **OAI MME**.
+   - The last valid tag on the MME is **2020.w47**.
    - Our developers are now contributing to the **MAGMA-MME**.
 
 
