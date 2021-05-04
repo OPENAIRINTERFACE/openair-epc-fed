@@ -177,9 +177,9 @@ pipeline {
                   }
                 }
               }
-              sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+              sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             } else {
-              sh './scripts/syncComponents.sh'
+              sh './scripts/syncComponentsLegacy.sh'
             }
             sh "mkdir -p archives DS-TEST-RESULTS"
           }
@@ -219,13 +219,13 @@ pipeline {
             sh "git clean -x -d -f > /dev/null 2>&1"
             sh "git fetch --prune > /dev/null 2>&1"
             sh 'git checkout -f ' + upstreamTagToUse
-            sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+            sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir -p archives DS-TEST-RESULTS"
           }
           // In case of a manually triggered job
           if ((!upstreamEvent) && (!scmEvent)) {
             sh "git clean -x -d -f > /dev/null 2>&1"
-            sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+            sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir -p archives DS-TEST-RESULTS"
           }
           try {
