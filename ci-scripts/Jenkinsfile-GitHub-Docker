@@ -319,17 +319,17 @@ pipeline {
           echo '\u2705 \u001B[32mDeploy EPC in idle mode\u001B[0m'
           // Prepare all needed files for docker-compose
           // First put all correct tags to test
-          sh 'sed -e "s#HSS_IMAGE_TAG#' + hssTag + '#" -e "s#MME_IMAGE_TAG#' + mmeTag + '#" -e "s#SPGWC_IMAGE_TAG#' + spgwcTag + '#" -e "s#SPGWU_IMAGE_TAG#' + spgwuTag + '#" ci-scripts/dsTesterDockerCompose/docker-compose.tplt > ci-scripts/dsTesterDockerCompose/docker-compose.yml'
-          sh 'cp component/oai-hss/src/hss_rel14/db/oai_db.cql ci-scripts/dsTesterDockerCompose'
+          sh 'sed -e "s#HSS_IMAGE_TAG#' + hssTag + '#" -e "s#MME_IMAGE_TAG#' + mmeTag + '#" -e "s#SPGWC_IMAGE_TAG#' + spgwcTag + '#" -e "s#SPGWU_IMAGE_TAG#' + spgwuTag + '#" ci-scripts/dsTesterDockerComposeLegacy/docker-compose.tplt > ci-scripts/dsTesterDockerComposeLegacy/docker-compose.yml'
+          sh 'cp component/oai-hss/src/hss_rel14/db/oai_db.cql ci-scripts/dsTesterDockerComposeLegacy'
           // Entrypoints are modified to be inactive for dsTester framework
           // MME is a bit more complex. So local
-          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-hss/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/hss-entrypoint-sleep.sh'
-          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwc/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/spgwc-entrypoint-sleep.sh'
-          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwu-tiny/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/spgwu-entrypoint-sleep.sh'
-          sh 'chmod 755 ci-scripts/dsTesterDockerCompose/*entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-hss/scripts/entrypoint.sh > ci-scripts/dsTesterDockerComposeLegacy/hss-entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwc/scripts/entrypoint.sh > ci-scripts/dsTesterDockerComposeLegacy/spgwc-entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwu-tiny/scripts/entrypoint.sh > ci-scripts/dsTesterDockerComposeLegacy/spgwu-entrypoint-sleep.sh'
+          sh 'chmod 755 ci-scripts/dsTesterDockerComposeLegacy/*entrypoint-sleep.sh'
 
           // Deploy
-          dir('ci-scripts/dsTesterDockerCompose') {
+          dir('ci-scripts/dsTesterDockerComposeLegacy') {
             sh 'docker-compose up -d cicd_db_init > ../../archives/compose_cassandra_up.log 2>&1'
             int count = 0
             while (count<6) {
@@ -424,7 +424,7 @@ pipeline {
       steps {
         script {
           echo '\u2705 \u001B[32mUn-Deploy EPC\u001B[0m'
-          dir('ci-scripts/dsTesterDockerCompose') {
+          dir('ci-scripts/dsTesterDockerComposeLegacy') {
             sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
           }
         }
@@ -457,7 +457,7 @@ pipeline {
     always {
       script {
         // Removing all containers and networks
-        dir('ci-scripts/dsTesterDockerCompose') {
+        dir('ci-scripts/dsTesterDockerComposeLegacy') {
           sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
         }
         // Removing any leftover images
