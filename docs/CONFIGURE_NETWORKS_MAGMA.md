@@ -39,21 +39,21 @@ By just deploying the Cassandra container(s), you will create 2 docker networks:
 ```bash
 $ cd docker-compose/oai-mme-legacy
 $ docker-compose up -d db_init
-Creating network "prod-oai-private-net" with the default driver
-Creating network "prod-oai-public-net" with the default driver
-Creating prod-cassandra ... done
-Creating prod-db-init   ... done
+Creating network "demo-oai-private-net" with the default driver
+Creating network "demo-oai-public-net" with the default driver
+Creating demo-cassandra ... done
+Creating demo-db-init   ... done
 $ docker network ls
 NETWORK ID          NAME                       DRIVER              SCOPE
 db9d51755702        bridge                     bridge              local
 c3605ce9dbf6        host                       host                local
 3dffd2ec9ad2        none                       null                local
-a2774c5b14ee        prod-oai-private-net       bridge              local
-4a2fc2f18d63        prod-oai-public-net        bridge              local
-$ docker network inspect prod-oai-public-net 
+a2774c5b14ee        demo-oai-private-net       bridge              local
+4a2fc2f18d63        demo-oai-public-net        bridge              local
+$ docker network inspect demo-oai-public-net
 [
     {
-        "Name": "prod-oai-public-net",
+        "Name": "demo-oai-public-net",
 ...
         "IPAM": {
             "Driver": "default",
@@ -71,7 +71,7 @@ $ docker network inspect prod-oai-public-net
 ]
 ```
 
-As you can see, the public network (`prod-oai-public-net`) is using the range `192.168.61.128/26`.
+As you can see, the public network (`demo-oai-public-net`) is using the range `192.168.61.128/26`.
 
 If this IP range **DOES NOT** suit your network environment, you have a lot of editing.
 
@@ -111,7 +111,7 @@ Let make sure your routing on the eNB server is correct.
 **On your EPC Docker Host:** recover the MME IP address:
 
 ```bash
-$ docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme
+$ docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" demo-magma-mme
 192.168.61.149
 ```
 
