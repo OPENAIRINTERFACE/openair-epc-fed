@@ -115,7 +115,7 @@ I strongly recommend to only modify the **MCC**-type and **MNC**-type parameters
 
 You could touch the **TAC**-type ones but it's quite more difficult for a simple tutorial.
 
-In our example, we used **222** and **01**. 
+In our example, we used **208** and **96**. 
 
 Note that the **MNC3**-type parameters are encoded over 3 characters. This is mandatory.
 
@@ -126,7 +126,7 @@ For example, if you are using OAI eNB configuration file:
 ```bash
     tracking_area_code  =  1;
     plmn_list = (
-      { mcc = 222; mnc = 01; mnc_length = 2; }
+      { mcc = 208; mnc = 96; mnc_length = 2; }
     );
 ```
 
