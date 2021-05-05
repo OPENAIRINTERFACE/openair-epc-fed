@@ -330,6 +330,8 @@ pipeline {
 
           // Deploy
           dir('ci-scripts/dsTesterDockerComposeLegacy') {
+            // Making sure not leftover.
+            sh 'docker-compose down > /dev/null 2>&1 || true'
             sh 'docker-compose up -d cicd_db_init > ../../archives/compose_cassandra_up.log 2>&1'
             int count = 0
             while (count<6) {
