@@ -177,8 +177,8 @@ pipeline {
       steps {
         script {
           // Deploy all RAN/UE containers
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimENB --tag=' + oaiEnbTag + ' 2>&1'
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimUE --tag=' + oaiLteUeTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimENB --tag=' + oaiEnbTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimUE --tag=' + oaiLteUeTag + ' 2>&1'
           sh 'sleep 120'
         }
       }
