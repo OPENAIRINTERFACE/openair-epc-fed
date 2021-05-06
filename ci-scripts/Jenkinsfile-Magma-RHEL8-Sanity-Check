@@ -36,6 +36,10 @@ def spgwcBranch = 'develop'
 def spgwuTag = 'develop'
 def spgwuBranch = 'develop'
 
+// RAN Tags to use
+def oaiEnbTag = 'develop-2021-w15'
+def oaiLteUeTag = 'develop-2021-w15'
+
 // Flags
 def scmEvent = false
 def upstreamEvent = false
@@ -141,10 +145,58 @@ pipeline {
         }
       }
     }
+    stage ('Deploy EPC on RHEL8 host') {
+      steps {
+        script {
+          // Currently docker-compose does not work with podman3 the way we want
+          // Re-using a python based approach
+          // First making sure remanent from previous run
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks'
+          // Create networks
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=CreateNetworks'
+          // Deploy all CN containers
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployCassandra'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployHSS --tag=' + hssTag
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRedis'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployMME --tag=' + magmaMmeTag
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWC --tag=' + spgwcTag
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWU --tag=' + spgwuTag
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployTrfGen --tag=production'
+        }
+      }
+    }
+    stage ('Deploy OAI eNB/UE RF Sim') {
+      steps {
+        script {
+          // Deploy all RAN/UE containers
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimENB --tag=' + oaiEnbTag
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimUE --tag=' + oaiLteUeTag
+          sh 'sleep 120'
+        }
+      }
+      post {
+        always {
+          script {
+            sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+          }
+        }
+      }
+    }
+    stage ('Undeploy EPC') {
+      steps {
+        script {
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks'
+        }
+      }
+    }
   }
   post {
     always {
       script {
+        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers || true'
+        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks || true'
         // Zipping all archived log files
         sh "zip -r -qq fed_podman_logs.zip archives"
         if (fileExists('fed_podman_logs.zip')) {
