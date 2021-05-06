@@ -3,6 +3,7 @@
 function generateConfFile()
 {
   set +x
+  rm -f mme.conf
   echo 'MME :' >> mme.conf
   echo '{' >> mme.conf
   echo '    REALM                                     = "'$REALM'"' >> mme.conf
@@ -143,6 +144,7 @@ function generateConfFile()
 function generateFdConfFile()
 {
   set +x
+  rm -f mme_fd.conf
   echo 'Identity = "'$MME_FQDN'";' >> mme_fd.conf
   echo 'Realm = "'$REALM'";' >> mme_fd.conf
   echo 'TLS_Cred = "'$PREFIX'/mme.cert.pem",' >> mme_fd.conf
