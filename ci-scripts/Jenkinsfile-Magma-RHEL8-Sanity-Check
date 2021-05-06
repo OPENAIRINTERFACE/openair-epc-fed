@@ -151,18 +151,25 @@ pipeline {
           // Currently docker-compose does not work with podman3 the way we want
           // Re-using a python based approach
           // First making sure remanent from previous run
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers'
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers > /dev/null 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks > /dev/null 2>&1'
           // Create networks
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=CreateNetworks'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=CreateNetworks 2>&1'
           // Deploy all CN containers
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployCassandra'
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployHSS --tag=' + hssTag
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRedis'
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployMME --tag=' + magmaMmeTag
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWC --tag=' + spgwcTag
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWU --tag=' + spgwuTag
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployTrfGen --tag=production'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployCassandra 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployHSS --tag=' + hssTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRedis 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployMME --tag=' + magmaMmeTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWC --tag=' + spgwcTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWU --tag=' + spgwuTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployTrfGen --tag=production 2>&1'
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+          }
         }
       }
     }
@@ -170,8 +177,8 @@ pipeline {
       steps {
         script {
           // Deploy all RAN/UE containers
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimENB --tag=' + oaiEnbTag
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimUE --tag=' + oaiLteUeTag
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimENB --tag=' + oaiEnbTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=-action=DeployRfSimUE --tag=' + oaiLteUeTag + ' 2>&1'
           sh 'sleep 120'
         }
       }
@@ -186,8 +193,8 @@ pipeline {
     stage ('Undeploy EPC') {
       steps {
         script {
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers'
-          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks 2>&1'
         }
       }
     }
