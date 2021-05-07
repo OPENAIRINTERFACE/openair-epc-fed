@@ -224,7 +224,7 @@ class HtmlReport():
 				self.file.write('       <td>N/A</td>\n')
 				self.file.write('       <td>108 MB</td>\n')
 				configState = 'KO'
-				cmd = 'grep -c 1 archives/redis_status.log || true'
+				cmd = 'egrep -c "STATUS: healthy" archives/redis_status.log || true'
 				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
 				if ret.stdout is not None:
 					if ret.stdout.strip() == '1':

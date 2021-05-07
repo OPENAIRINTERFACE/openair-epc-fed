@@ -177,9 +177,7 @@ pipeline {
             }
             // Check status on redis.
             try {
-              sh 'sudo podman top cicd-redis | grep -c redis-server > archives/redis_status.log'
-              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-redis >> archives/redis_status.log'
-              sh 'echo "STATUS: OK" >> archives/redis_status.log'
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-redis > archives/redis_status.log'
             } catch (Exception e) {
               sh 'echo "STATUS: KO" >> archives/redis_status.log'
             }
