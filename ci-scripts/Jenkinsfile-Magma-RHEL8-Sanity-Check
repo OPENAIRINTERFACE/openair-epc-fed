@@ -67,7 +67,7 @@ pipeline {
 
           // Clean workspace and prepare artifacts location
           sh "git clean -x -d -f > /dev/null 2>&1"
-          sh "mkdir -p archives DS-TEST-RESULTS"
+          sh "mkdir -p archives"
 
           // Find out the cause of the trigger
           for (cause in currentBuild.getBuildCauses()) {
@@ -166,8 +166,52 @@ pipeline {
         }
       }
       post {
+        always {
+          script {
+            // Check status on cassandra.
+            try {
+              sh 'sudo podman exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-cassandra >> archives/cassandra_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/cassandra_status.log'
+            }
+            // Check status on redis.
+            try {
+              sh 'sudo podman top cicd-redis | grep -c redis-server > archives/redis_status.log'
+              sh 'echo "STATUS: OK" >> archives/redis_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/redis_status.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-hss > archives/hss_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/hss_config.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-mme > archives/mme_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/mme_config.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-spgwc > archives/spgwc_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: OK" >> archives/spgwc_config.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-spgwu-tiny > archives/spgwu_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/spgwu_config.log'
+            }
+          }
+        }
+        success {
+          script {
+            sh 'echo "DEPLOYMENT: OK" > archives/deployment_status.log'
+          }
+        }
         unsuccessful {
           script {
+            sh 'echo "DEPLOYMENT: KO" > archives/deployment_status.log'
             sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
           }
         }
@@ -202,13 +246,14 @@ pipeline {
   post {
     always {
       script {
-        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers || true'
-        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks || true'
+        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers > /dev/null 2>&1 || true'
+        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks > /dev/null 2>&1 || true'
         // Zipping all archived log files
         sh "zip -r -qq fed_podman_logs.zip archives"
         if (fileExists('fed_podman_logs.zip')) {
           archiveArtifacts artifacts: 'fed_podman_logs.zip'
         }
+        sh 'python3 ./ci-scripts/rhel8SanityCheckReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
         if (fileExists('test_results_oai_epc_rhel8.html')) {
           sh 'mv test_results_oai_epc_rhel8.html test_results_magma_epc_rhel8.html'
           archiveArtifacts artifacts: 'test_results_magma_epc_rhel8.html'
