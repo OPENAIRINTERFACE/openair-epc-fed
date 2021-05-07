@@ -83,7 +83,7 @@ class deployWithOAIran:
         except:
             pass
 
-        subprocess_run_w_echo(self.cli + ' run --name cicd-cassandra --network cicd-oai-public-net --ip ' + CICD_CASS_IP_ADDR + ' -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch cassandra:2.1')
+        subprocess_run_w_echo(self.cli + ' run --name cicd-cassandra --network cicd-oai-public-net --ip ' + CICD_CASS_IP_ADDR + ' -d -e CASSANDRA_CLUSTER_NAME="OAI HSS Cluster" -e CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch --health-cmd "nodetool status" cassandra:2.1')
         # waiting for the service to be properly started
         doLoop = True
         while doLoop:

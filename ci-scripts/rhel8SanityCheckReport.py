@@ -170,7 +170,7 @@ class HtmlReport():
 					result = re.search(tagPattern + ': (?P<tag>[a-zA-Z0-9\-\_:]+)', line)
 					if result is not None:
 						usedTag = result.group('tag')
-					result = re.search('Date = (?P<date>[a-zA-Z0-9\-\_:]+)', line)
+					result = re.search('Date = (?P<date>[a-zA-Z0-9 \-\_:]+)', line)
 					if result is not None:
 						createDate = result.group('date')
 					result = re.search('Size = (?P<size>[0-9]+) bytes', line)
@@ -205,7 +205,7 @@ class HtmlReport():
 				self.file.write('       <td>' + containerName + '</td>\n')
 				self.file.write('       <td>cassandra:2.1</td>\n')
 				self.file.write('       <td>N/A</td>\n')
-				self.file.write('       <td>496MB</td>\n')
+				self.file.write('       <td>367 MB</td>\n')
 				configState = 'KO'
 				cmd = 'egrep -c "STATUS: healthy" archives/cassandra_status.log || true'
 				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
@@ -222,7 +222,7 @@ class HtmlReport():
 				self.file.write('       <td>' + containerName + '</td>\n')
 				self.file.write('       <td>redis:6.0.5</td>\n')
 				self.file.write('       <td>N/A</td>\n')
-				self.file.write('       <td>104MB</td>\n')
+				self.file.write('       <td>108 MB</td>\n')
 				configState = 'KO'
 				cmd = 'grep -c 2 archives/redis_status.log || true'
 				ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, encoding='utf-8')
