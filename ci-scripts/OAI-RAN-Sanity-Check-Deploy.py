@@ -132,7 +132,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-hss --network cicd-oai-public-net --ip ' + CICD_HSS_PUBLIC_ADDR + ' --env-file ' + hssEnvFile + ' -d oai-hss:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-hss --network cicd-oai-public-net --ip ' + CICD_HSS_PUBLIC_ADDR + ' --env-file ' + hssEnvFile + ' --health-cmd "ls /openair-hss/etc/hss.cert.pem" -d oai-hss:' + self.tag)
 
         count = 0
         runCount = 0
@@ -161,7 +161,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-redis --network cicd-oai-public-net --ip ' + CICD_REDIS_PUBLIC_ADDR + ' --volume ' + redisConfFile + ':/usr/local/etc/redis/redis.conf -d redis:6.0.5 "/usr/local/etc/redis/redis.conf"')
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-redis --network cicd-oai-public-net --ip ' + CICD_REDIS_PUBLIC_ADDR + ' --volume ' + redisConfFile + ':/usr/local/etc/redis/redis.conf --health-cmd "redis-cli -h ' + CICD_REDIS_PUBLIC_ADDR + ' -p 6380 ping" -d redis:6.0.5 "/usr/local/etc/redis/redis.conf"')
 
         count = 0
         runCount = 0
@@ -200,7 +200,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-mme --hostname mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' --volume ' + mmeEntrypoint + ':/magma-mme/bin/entrypoint.sh --env-file ' + mmeEnvFile + ' --entrypoint "/magma-mme/bin/entrypoint.sh" -d  magma-mme:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-mme --hostname mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' --volume ' + mmeEntrypoint + ':/magma-mme/bin/entrypoint.sh --env-file ' + mmeEnvFile + ' --entrypoint "/magma-mme/bin/entrypoint.sh" --health-cmd "pgrep --count oai_mme" -d magma-mme:' + self.tag)
 
         count = 0
         runCount = 0
@@ -276,7 +276,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' -d oai-spgwc:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' --health-cmd "ls" -d oai-spgwc:' + self.tag)
 
         count = 0
         runCount = 0
@@ -312,7 +312,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' --env-file ' + spgwuEnvFile + ' -d oai-spgwu-tiny:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' --env-file ' + spgwuEnvFile + ' --health-cmd "ls" -d oai-spgwu-tiny:' + self.tag)
 
         count = 0
         runCount = 0
