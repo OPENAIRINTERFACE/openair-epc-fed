@@ -231,6 +231,16 @@ pipeline {
             sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
           }
         }
+        success {
+          script {
+            sh 'echo "OAI RAN STACK TEST: OK" > archives/oai_ran_stack_test.log'
+          }
+        }
+        unsuccessful {
+          script {
+            sh 'echo "OAI RAN STACK TEST: KO" > archives/oai_ran_stack_test.log'
+          }
+        }
       }
     }
     stage ('Undeploy EPC') {

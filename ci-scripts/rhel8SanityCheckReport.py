@@ -24,6 +24,7 @@ import os
 import re
 import sys
 import subprocess
+from pcap_check import *
 
 class HtmlReport():
 	def __init__(self):
@@ -40,9 +41,9 @@ class HtmlReport():
 		self.deploymentSummaryHeader()
 
 		finalStatus = True
-#		finalStatus = self.testSummaryHeader()
-#		self.testSummaryDetails()
-#		self.testSummaryFooter()
+		finalStatus = self.testSummaryHeader()
+		self.testSummaryDetails()
+		self.testSummaryFooter()
 
 		self.generateFooter()
 		self.file.close()
@@ -244,29 +245,29 @@ class HtmlReport():
 				self.file.write('     </tr>\n')
 
 	def testSummaryHeader(self):
-		self.file.write('  <h2>DS Tester Summary</h2>\n')
+		self.file.write('  <h2>Test with full OAI RAN Stack Summary</h2>\n')
+		finalStatusOK = False
 
-		finalDsTesterSummaryFile = 'DS-TEST-RESULTS/status.txt'
+		finalOaiRanTestFile = 'archives/oai_ran_stack_test.log'
 		cwd = os.getcwd()
-		if os.path.isfile(cwd + '/' + finalDsTesterSummaryFile):
-			finalStatusOK = True
-			with open(cwd + '/' + finalDsTesterSummaryFile, 'r') as finalLog:
+		if os.path.isfile(cwd + '/' + finalOaiRanTestFile):
+			with open(cwd + '/' + finalOaiRanTestFile, 'r') as finalLog:
 				for line in finalLog:
 					line = line.strip()
-					result = re.search('FAILED', line)
+					result = re.search('OAI RAN STACK TEST', line)
 					if result is not None:
-						result = re.search('example_app_s1_multi_pdn_enb', line)
-						if result is None:
-							finalStatusOK = False
+						result = re.search('OK', line)
+						if result is not None:
+							finalStatusOK = True
 			finalLog.close()
 
 			if finalStatusOK:
 				self.file.write('  <div class="alert alert-success">\n')
-				self.file.write('    <strong>Successful DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('    <strong>Successful Test with OAI RAN stack! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 			else:
 				self.file.write('  <div class="alert alert-danger">\n')
-				self.file.write('    <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('    <strong>Failed Test with OAI RAN stack! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 		else:
 			finalStatusOK = False
@@ -277,61 +278,74 @@ class HtmlReport():
 
 	def testSummaryDetails(self):
 		self.file.write('  <br>\n')
-		self.file.write('  <button data-toggle="collapse" data-target="#ds-tester-details">More details on DsTester results</button>\n')
+		self.file.write('  <button data-toggle="collapse" data-target="#oai-stack-details">More details on OAI RAN test results</button>\n')
 		self.file.write('  <br>\n')
-		self.file.write('  <div id="ds-tester-details" class="collapse">\n')
+		self.file.write('  <div id="oai-stack-details" class="collapse">\n')
 		self.file.write('  <br>\n')
-		self.file.write('  <table class="table-bordered" width = "60%" align = "center" border = 1>\n')
+		self.file.write('  <table class="table-bordered" width = "90%" align = "center" border = 1>\n')
 		self.file.write('     <tr bgcolor = "#33CCFF" >\n')
 		self.file.write('       <th>Test Name</th>\n')
 		self.file.write('       <th>Test Status</th>\n')
 		self.file.write('       <th>Test Details</th>\n')
 		self.file.write('     </tr>\n')
-		dsTesterDetailsLog = 'archives/run-4g-dstester.log'
-		cwd = os.getcwd()
-		if os.path.isfile(cwd + '/' + dsTesterDetailsLog):
-			testName = ''
-			testDetails = '<pre style="background-color:white">\n'
-			with open(cwd + '/' + dsTesterDetailsLog) as detailsLog:
-				for line in detailsLog:
-					line = line.strip()
-					result = re.search('CHECKED condition|FAILED condition', line)
-					if result is not None:
-						details = line.replace('Result String: ', '')
-						details = details.replace('CHECKED condition ', '')
-						details = details.replace('FAILED condition ', '')
-						result = re.search('FAILED condition', line)
-						if result is not None:
-							testDetails += '<b>' + details + '</b>\n'
-						else:
-							testDetails += details + '\n'
-					result = re.search('Running ', line)
-					if result is not None:
-						testName = line.replace('Running ', '')
-						print(testName)
-					result = re.search('status:|caught exception', line)
-					if result is not None:
-						self.file.write('     <tr>\n')
-						self.file.write('       <td>' + testName + '</td>\n')
-						result = re.search('FAILED|caught exception', line)
-						if result is not None:
-							# currently waiver for Multi-PDN test
-							result = re.search('example_app_s1_multi_pdn_enb', line)
-							if result is not None:
-								self.file.write('       <td bgcolor = "OrangeRed"><b><font color="white">Unstable</font></b></td>\n')
-							else:
-								self.file.write('       <td bgcolor = "Red"><b><font color="white">KO</font></b></td>\n')
-						else:
-							self.file.write('       <td bgcolor = "DarkGreen"><b><font color="white">OK</font></b></td>\n')
-						testDetails += '</pre>\n'
-						self.file.write('       <td>' + testDetails + '</td>\n')
-						self.file.write('     </tr>\n')
-						testDetails = '<pre style="background-color:white">\n'
-			detailsLog.close()
-		else:
-			print ('no details???')
+		pcap_list = [f for f in os.listdir('archives') if os.path.isfile(os.path.join('archives', f)) and f.endswith('.pcap')]
+		for pcap_fil in pcap_list:
+			# MME to HSS Connection
+			res = check_if_mme_connects_to_hss('archives/' + pcap_fil)
+			self.addSectionRow('MME HSS S6A Connection')
+			self.addDetailsRow('MME S6A Request', res['mme_request'], 'Realm = ' + res['origin_realm'])
+			self.addDetailsRow('HSS S6A Response', res['mme_request'], 'Host = ' + res['origin_host'])
+			# eNB to MME S1 Connection
+			res = check_if_enb_connects_to_mme('archives/' + pcap_fil)
+			self.addSectionRow('eNB S1 Setup to MME')
+			self.addDetailsRow('eNB SCTP INIT', res['enb_init_req'], 'n/a')
+			self.addDetailsRow('MME SCTP INIT_ACK', res['mme_init_answer'], 'n/a')
+			details = 'MCC = ' + res['enb_mcc'] + '\n'
+			details += 'MNC = ' + res['enb_mnc'] + '\n'
+			details += 'eNB Name = ' + res['enb_name']
+			self.addDetailsRow('eNB S1 Setup Request', res['enb_s1_setup_req'], details)
+			self.addDetailsRow('MME S1 Setup Response', res['mme_s1_setup_res'], 'n/a')
+			# UE attachment
+			res = check_if_ue_attachs('archives/' + pcap_fil)
+			self.addSectionRow('UE Attachment')
+			self.addDetailsRow('UE Attach Request', res['ue_init_msg'], 'IMSI = ' + res['ue_imsi'])
+			self.addDetailsRow('MME NAS Auth Request', res['nas_auth_req'], 'n/a')
+			self.addDetailsRow('UE NAS Auth Res', res['nas_auth_res'], 'n/a')
+			self.addDetailsRow('MME NAS Security Mode Command', res['nas_security_cmd'], 'n/a')
+			self.addDetailsRow('UE NSA Security Mode Complete', res['nas_security_cmplt'], 'n/a')
+			details = 'IMSI = ' + res['s11_cr_sess_imsi'] + '\n'
+			details += 'MCC = ' + res['s11_cr_sess_mcc'] + '\n' 
+			details += 'MNC = ' + res['s11_cr_sess_mnc'] + '\n' 
+			details += 'APN = ' + res['s11_cr_sess_apn']
+			self.addDetailsRow('S11 Create Session Request', res['s11_create_session_req'], details)
+			details = 'PDN IP ADDR = ' + res['s11_cr_sess_pdn_addr']
+			self.addDetailsRow('S11 Create Session Response', res['s11_create_session_res'], details)
+			details = 'APN = ' + res['apn'] + '\n'
+			details += 'Transport Layer IP (ie SPGW-U) = ' + res['transportlayeraddress']
+			self.addDetailsRow('MME NAS UE Initial Context', res['initial_ue_context_req'], details)
+			details = 'Transport Layer IP (ie eNB) = ' + res['enb_transportlayeraddress']
+			self.addDetailsRow('UE NAS UE Initial Context Response', res['initial_ue_context_res'], details)
+			details = 'eNB F-TEID = ' + res['s11_mod_bear_fteid']
+			self.addDetailsRow('S11 Modify Bearer Request', res['s11_modify_bearer_req'], details)
+			details = 'SPGW-U F-TEID = ' + res['s11_mod_bear_ufteid']
+			self.addDetailsRow('S11 Modify Bearer Response', res['s11_modify_bearer_res'], details)
 		self.file.write('  </table>\n')
 		self.file.write('  </div>\n')
+
+	def addSectionRow(self, sectionName):
+		self.file.write('     <tr bgcolor = "LightGray">\n')
+		self.file.write('       <td align = "center" colspan = "3">' + sectionName + '</td>\n')
+		self.file.write('     </tr>\n')
+
+	def addDetailsRow(self, testName, status, details):
+		self.file.write('     <tr>\n')
+		self.file.write('       <td>' + testName + '</td>\n')
+		if status:
+			self.file.write('       <td bgcolor = "Green"><font color="white"><b>OK</b></font></td>\n')
+		else:
+			self.file.write('       <td bgcolor = "Red"><font color="white"><b>KO</b></font></td>\n')
+		self.file.write('       <td><pre>'+ details + '</td>\n')
+		self.file.write('     </tr>\n')
 
 	def testSummaryFooter(self):
 		self.file.write('  <br>\n')
