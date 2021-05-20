@@ -132,7 +132,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-hss --network cicd-oai-public-net --ip ' + CICD_HSS_PUBLIC_ADDR + ' --env-file ' + hssEnvFile + ' --health-cmd "ls /openair-hss/etc/hss.cert.pem" -d oai-hss:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-hss --network cicd-oai-public-net --ip ' + CICD_HSS_PUBLIC_ADDR + ' --env-file ' + hssEnvFile + ' --health-cmd "pgrep --count oai_hss" -d oai-hss:' + self.tag)
 
         count = 0
         runCount = 0

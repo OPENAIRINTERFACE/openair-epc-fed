@@ -37,8 +37,8 @@ def spgwuTag = 'develop'
 def spgwuBranch = 'develop'
 
 // RAN Tags to use
-def oaiEnbTag = 'develop-2021-w15'
-def oaiLteUeTag = 'develop-2021-w15'
+def oaiEnbTag = 'develop-2021-w20-gen'
+def oaiLteUeTag = 'develop-2021-w20-gen'
 
 // Flags
 def scmEvent = false
