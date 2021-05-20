@@ -159,7 +159,7 @@ The reason: a lot of needed packages/libraries are installed from source for a v
 Once again, if you need a proxy, add your proxy URL. If not, remove the option.
 
 ```bash
-$ docker build --target magma-mme --tag magma-mme:nsa-support \
+$ docker build --target magma-mme --tag magma-mme:master \
                --file lte/gateway/docker/mme/Dockerfile.ubuntu18.04 \
                --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080" .
 $ docker image ls

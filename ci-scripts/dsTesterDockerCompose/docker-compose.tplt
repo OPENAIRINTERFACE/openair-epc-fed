@@ -72,7 +72,12 @@ services:
                 ipv4_address: 192.168.61.195
         volumes:
             - ./redis_extern.conf:/usr/local/etc/redis/redis.conf
-        entrypoint: /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf; sleep infinity"
+        entrypoint: /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
+        healthcheck:
+            test: /bin/bash -c "redis-cli -h 192.168.61.195 -p 6380 ping"
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     cicd_magma_mme:
         image: magma-mme:MAGMA_MME_IMAGE_TAG
