@@ -176,6 +176,8 @@ def check_if_ue_attachs(pcap_file):
 	res['initial_ue_context_res'] = False
 	res['s11_create_session_req'] = False
 	res['s11_create_session_res'] = False
+	res['s11_modify_bearer_req'] = False
+	res['s11_modify_bearer_res'] = False
 	res['ue_imsi'] = ''
 	res['apn'] = ''
 	res['transportlayeraddress'] = ''
@@ -185,6 +187,8 @@ def check_if_ue_attachs(pcap_file):
 	res['s11_cr_sess_mnc'] = ''
 	res['s11_cr_sess_apn'] = ''
 	res['s11_cr_sess_pdn_addr'] = ''
+	res['s11_mod_bear_fteid'] = ''
+	res['s11_mod_bear_ufteid'] = ''
 	try:
 		cap = {}
 		cap = pyshark.FileCapture(pcap_file, keep_packets=True, display_filter="sctp.port == 36412 || udp.port == 2123")

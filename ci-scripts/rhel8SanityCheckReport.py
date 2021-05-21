@@ -41,8 +41,9 @@ class HtmlReport():
 		self.deploymentSummaryHeader()
 
 		finalStatus = True
-		finalStatus = self.testSummaryHeader()
-		self.testSummaryDetails()
+		[finalStatus, details] = self.testSummaryDetails()
+		self.testSummaryHeader(finalStatus)
+		self.file.write(details)
 		self.testSummaryFooter()
 
 		self.generateFooter()
@@ -244,108 +245,114 @@ class HtmlReport():
 				self.file.write('       <td bgcolor = "DarkOrange"><b><font color="white">UNKNOW</font></b></td>\n')
 				self.file.write('     </tr>\n')
 
-	def testSummaryHeader(self):
+	def testSummaryHeader(self, status):
 		self.file.write('  <h2>Test with full OAI RAN Stack Summary</h2>\n')
 		finalStatusOK = False
 
-		finalOaiRanTestFile = 'archives/oai_ran_stack_test.log'
-		cwd = os.getcwd()
-		if os.path.isfile(cwd + '/' + finalOaiRanTestFile):
-			with open(cwd + '/' + finalOaiRanTestFile, 'r') as finalLog:
-				for line in finalLog:
-					line = line.strip()
-					result = re.search('OAI RAN STACK TEST', line)
-					if result is not None:
-						result = re.search('OK', line)
-						if result is not None:
-							finalStatusOK = True
-			finalLog.close()
-
-			if finalStatusOK:
-				self.file.write('  <div class="alert alert-success">\n')
-				self.file.write('    <strong>Successful Test with OAI RAN stack! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
-				self.file.write('  </div>\n')
-			else:
-				self.file.write('  <div class="alert alert-danger">\n')
-				self.file.write('    <strong>Failed Test with OAI RAN stack! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
-				self.file.write('  </div>\n')
-		else:
-			finalStatusOK = False
-			self.file.write('  <div class="alert alert-warning">\n')
-			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+		if status:
+			self.file.write('  <div class="alert alert-success">\n')
+			self.file.write('    <strong>Successful Test with OAI RAN stack! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 			self.file.write('  </div>\n')
-		return finalStatusOK
+		else:
+			self.file.write('  <div class="alert alert-danger">\n')
+			self.file.write('    <strong>Failed Test with OAI RAN stack! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+			self.file.write('  </div>\n')
 
 	def testSummaryDetails(self):
-		self.file.write('  <br>\n')
-		self.file.write('  <button data-toggle="collapse" data-target="#oai-stack-details">More details on OAI RAN test results</button>\n')
-		self.file.write('  <br>\n')
-		self.file.write('  <div id="oai-stack-details" class="collapse">\n')
-		self.file.write('  <br>\n')
-		self.file.write('  <table class="table-bordered" width = "90%" align = "center" border = 1>\n')
-		self.file.write('     <tr bgcolor = "#33CCFF" >\n')
-		self.file.write('       <th>Test Name</th>\n')
-		self.file.write('       <th>Test Status</th>\n')
-		self.file.write('       <th>Test Details</th>\n')
-		self.file.write('     </tr>\n')
-		pcap_list = [f for f in os.listdir('archives') if os.path.isfile(os.path.join('archives', f)) and f.endswith('.pcap')]
+		status = False
+		details = ''
+		details += '  <br>\n'
+		details += '  <button data-toggle="collapse" data-target="#oai-stack-details">More details on OAI RAN test results</button>\n'
+		details += '  <br>\n'
+		details += '  <div id="oai-stack-details" class="collapse">\n'
+		details += '  <br>\n'
+		details += '  <table class="table-bordered" width = "90%" align = "center" border = 1>\n'
+		details += '     <tr bgcolor = "#33CCFF" >\n'
+		details += '       <th>Test Name</th>\n'
+		details += '       <th>Test Status</th>\n'
+		details += '       <th>Test Details</th>\n'
+		details += '     </tr>\n'
+		pcap_list = [f for f in os.listdir('archives') if os.path.isfile(os.path.join('archives', f)) and f.startswith('mme') and f.endswith('.pcap')]
 		for pcap_fil in pcap_list:
+			# There should be only one (1) MME PCAP file and if present, then we can start resuming test OK
+			status = True
 			# MME to HSS Connection
 			res = check_if_mme_connects_to_hss('archives/' + pcap_fil)
-			self.addSectionRow('MME HSS S6A Connection')
-			self.addDetailsRow('MME S6A Request', res['mme_request'], 'Realm = ' + res['origin_realm'])
-			self.addDetailsRow('HSS S6A Response', res['mme_request'], 'Host = ' + res['origin_host'])
+			details += self.addSectionRow('MME HSS S6A Connection')
+			details += self.addDetailsRow('MME S6A Request', res['mme_request'], 'Realm = ' + res['origin_realm'])
+			details += self.addDetailsRow('HSS S6A Response', res['mme_request'], 'Host = ' + res['origin_host'])
+			if not res['mme_request'] or not res['mme_request']:
+				status = False
 			# eNB to MME S1 Connection
 			res = check_if_enb_connects_to_mme('archives/' + pcap_fil)
-			self.addSectionRow('eNB S1 Setup to MME')
-			self.addDetailsRow('eNB SCTP INIT', res['enb_init_req'], 'n/a')
-			self.addDetailsRow('MME SCTP INIT_ACK', res['mme_init_answer'], 'n/a')
-			details = 'MCC = ' + res['enb_mcc'] + '\n'
-			details += 'MNC = ' + res['enb_mnc'] + '\n'
-			details += 'eNB Name = ' + res['enb_name']
-			self.addDetailsRow('eNB S1 Setup Request', res['enb_s1_setup_req'], details)
-			self.addDetailsRow('MME S1 Setup Response', res['mme_s1_setup_res'], 'n/a')
+			details += self.addSectionRow('eNB S1 Setup to MME')
+			details += self.addDetailsRow('eNB SCTP INIT', res['enb_init_req'], 'n/a')
+			details += self.addDetailsRow('MME SCTP INIT_ACK', res['mme_init_answer'], 'n/a')
+			if not res['enb_init_req'] or not res['mme_init_answer']:
+				status = False
+			rowDetails = 'MCC = ' + res['enb_mcc'] + '\n'
+			rowDetails += 'MNC = ' + res['enb_mnc'] + '\n'
+			rowDetails += 'eNB Name = ' + res['enb_name']
+			details += self.addDetailsRow('eNB S1 Setup Request', res['enb_s1_setup_req'], rowDetails)
+			details += self.addDetailsRow('MME S1 Setup Response', res['mme_s1_setup_res'], 'n/a')
+			if not res['enb_s1_setup_req'] or not res['mme_s1_setup_res']:
+				status = False
 			# UE attachment
 			res = check_if_ue_attachs('archives/' + pcap_fil)
-			self.addSectionRow('UE Attachment')
-			self.addDetailsRow('UE Attach Request', res['ue_init_msg'], 'IMSI = ' + res['ue_imsi'])
-			self.addDetailsRow('MME NAS Auth Request', res['nas_auth_req'], 'n/a')
-			self.addDetailsRow('UE NAS Auth Res', res['nas_auth_res'], 'n/a')
-			self.addDetailsRow('MME NAS Security Mode Command', res['nas_security_cmd'], 'n/a')
-			self.addDetailsRow('UE NSA Security Mode Complete', res['nas_security_cmplt'], 'n/a')
-			details = 'IMSI = ' + res['s11_cr_sess_imsi'] + '\n'
-			details += 'MCC = ' + res['s11_cr_sess_mcc'] + '\n' 
-			details += 'MNC = ' + res['s11_cr_sess_mnc'] + '\n' 
-			details += 'APN = ' + res['s11_cr_sess_apn']
-			self.addDetailsRow('S11 Create Session Request', res['s11_create_session_req'], details)
-			details = 'PDN IP ADDR = ' + res['s11_cr_sess_pdn_addr']
-			self.addDetailsRow('S11 Create Session Response', res['s11_create_session_res'], details)
-			details = 'APN = ' + res['apn'] + '\n'
-			details += 'Transport Layer IP (ie SPGW-U) = ' + res['transportlayeraddress']
-			self.addDetailsRow('MME NAS UE Initial Context', res['initial_ue_context_req'], details)
-			details = 'Transport Layer IP (ie eNB) = ' + res['enb_transportlayeraddress']
-			self.addDetailsRow('UE NAS UE Initial Context Response', res['initial_ue_context_res'], details)
-			details = 'eNB F-TEID = ' + res['s11_mod_bear_fteid']
-			self.addDetailsRow('S11 Modify Bearer Request', res['s11_modify_bearer_req'], details)
-			details = 'SPGW-U F-TEID = ' + res['s11_mod_bear_ufteid']
-			self.addDetailsRow('S11 Modify Bearer Response', res['s11_modify_bearer_res'], details)
-		self.file.write('  </table>\n')
-		self.file.write('  </div>\n')
+			details += self.addSectionRow('UE Attachment')
+			details += self.addDetailsRow('UE Attach Request', res['ue_init_msg'], 'IMSI = ' + res['ue_imsi'])
+			details += self.addDetailsRow('MME NAS Auth Request', res['nas_auth_req'], 'n/a')
+			details += self.addDetailsRow('UE NAS Auth Res', res['nas_auth_res'], 'n/a')
+			if not res['ue_init_msg'] or not res['nas_auth_req'] or not res['nas_auth_res']:
+				status = False
+			details += self.addDetailsRow('MME NAS Security Mode Command', res['nas_security_cmd'], 'n/a')
+			details += self.addDetailsRow('UE NSA Security Mode Complete', res['nas_security_cmplt'], 'n/a')
+			if not res['nas_security_cmd'] or not res['nas_security_cmplt']:
+				status = False
+			rowDetails = 'IMSI = ' + res['s11_cr_sess_imsi'] + '\n'
+			rowDetails += 'MCC = ' + res['s11_cr_sess_mcc'] + '\n' 
+			rowDetails += 'MNC = ' + res['s11_cr_sess_mnc'] + '\n' 
+			rowDetails += 'APN = ' + res['s11_cr_sess_apn']
+			details += self.addDetailsRow('S11 Create Session Request', res['s11_create_session_req'], rowDetails)
+			rowDetails = 'PDN IP ADDR = ' + res['s11_cr_sess_pdn_addr']
+			details += self.addDetailsRow('S11 Create Session Response', res['s11_create_session_res'], rowDetails)
+			rowDetails = 'APN = ' + res['apn'] + '\n'
+			if not res['s11_create_session_req'] or not res['s11_create_session_res']:
+				status = False
+			rowDetails += 'Transport Layer IP (ie SPGW-U) = ' + res['transportlayeraddress']
+			details += self.addDetailsRow('MME NAS UE Initial Context', res['initial_ue_context_req'], rowDetails)
+			rowDetails = 'Transport Layer IP (ie eNB) = ' + res['enb_transportlayeraddress']
+			details += self.addDetailsRow('UE NAS UE Initial Context Response', res['initial_ue_context_res'], rowDetails)
+			if not res['initial_ue_context_req'] or not res['initial_ue_context_res']:
+				status = False
+			rowDetails = 'eNB F-TEID = ' + res['s11_mod_bear_fteid']
+			details += self.addDetailsRow('S11 Modify Bearer Request', res['s11_modify_bearer_req'], rowDetails)
+			rowDetails = 'SPGW-U F-TEID = ' + res['s11_mod_bear_ufteid']
+			details += self.addDetailsRow('S11 Modify Bearer Response', res['s11_modify_bearer_res'], rowDetails)
+			if not res['s11_modify_bearer_req'] or not res['s11_modify_bearer_res']:
+				status = False
+		details += '  </table>\n'
+		details += '  </div>\n'
+		return [status, details]
 
 	def addSectionRow(self, sectionName):
-		self.file.write('     <tr bgcolor = "LightGray">\n')
-		self.file.write('       <td align = "center" colspan = "3">' + sectionName + '</td>\n')
-		self.file.write('     </tr>\n')
+		sectionRow = ''
+		sectionRow += '     <tr bgcolor = "LightGray">\n'
+		sectionRow += '       <td align = "center" colspan = "3">' + sectionName + '</td>\n'
+		sectionRow += '     </tr>\n'
+		return sectionRow
 
 	def addDetailsRow(self, testName, status, details):
-		self.file.write('     <tr>\n')
-		self.file.write('       <td>' + testName + '</td>\n')
+		detailsRow = ''
+		detailsRow += '     <tr>\n'
+		detailsRow += '       <td>' + testName + '</td>\n'
 		if status:
-			self.file.write('       <td bgcolor = "Green"><font color="white"><b>OK</b></font></td>\n')
+			detailsRow += '       <td bgcolor = "Green"><font color="white"><b>OK</b></font></td>\n'
 		else:
-			self.file.write('       <td bgcolor = "Red"><font color="white"><b>KO</b></font></td>\n')
-		self.file.write('       <td><pre>'+ details + '</td>\n')
-		self.file.write('     </tr>\n')
+			detailsRow += '       <td bgcolor = "Red"><font color="white"><b>KO</b></font></td>\n'
+		detailsRow += '       <td><pre>'+ details + '</td>\n'
+		detailsRow += '     </tr>\n'
+		return detailsRow
 
 	def testSummaryFooter(self):
 		self.file.write('  <br>\n')

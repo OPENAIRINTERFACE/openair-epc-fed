@@ -43,6 +43,7 @@ def oaiLteUeTag = 'develop-2021-w20-gen'
 // Flags
 def scmEvent = false
 def upstreamEvent = false
+def retrievedLogs = false
 
 //-------------------------------------------------------------------------------
 // Pipeline start
@@ -212,6 +213,7 @@ pipeline {
           script {
             sh 'echo "DEPLOYMENT: KO" > archives/deployment_status.log'
             sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+            retrievedLogs = true
           }
         }
       }
@@ -223,12 +225,20 @@ pipeline {
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimENB --tag=' + oaiEnbTag + ' 2>&1'
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimUE --tag=' + oaiLteUeTag + ' 2>&1'
           sh 'sleep 120'
+          // Retrieve all logs
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+          retrievedLogs = true
+          // Generate HTML report by parsing PCAP-captured packets is the final say on pass/fail criteria
+          // Something wrong occurs before this line, then it will be generate in the final post section
+          sh 'python3 ./ci-scripts/rhel8SanityCheckReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
         }
       }
       post {
         always {
           script {
-            sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+            if (!retrievedLogs) {
+              sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+            }
           }
         }
         success {
@@ -262,7 +272,11 @@ pipeline {
         if (fileExists('fed_podman_logs.zip')) {
           archiveArtifacts artifacts: 'fed_podman_logs.zip'
         }
-        sh 'python3 ./ci-scripts/rhel8SanityCheckReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+        // If report not present, certainly something wrong occured.
+        // Generate it anyway without caring out about result
+        if (!fileExists('test_results_oai_epc_rhel8.html')) {
+          sh 'python3 ./ci-scripts/rhel8SanityCheckReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' || true'
+        }
         if (fileExists('test_results_oai_epc_rhel8.html')) {
           sh 'mv test_results_oai_epc_rhel8.html test_results_magma_epc_rhel8.html'
           archiveArtifacts artifacts: 'test_results_magma_epc_rhel8.html'

@@ -276,7 +276,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' --health-cmd "ls" -d oai-spgwc:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' --health-cmd "pgrep --count oai_spgwc" -d oai-spgwc:' + self.tag)
 
         count = 0
         runCount = 0
@@ -312,7 +312,7 @@ class deployWithOAIran:
         else:
             sys.exit(-1)
 
-        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' --env-file ' + spgwuEnvFile + ' --health-cmd "ls" -d oai-spgwu-tiny:' + self.tag)
+        subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwu-tiny --network cicd-oai-public-net --ip ' + CICD_SPGWU_PUBLIC_ADDR + ' --env-file ' + spgwuEnvFile + ' --health-cmd "pgrep --count oai_spgwu" -d oai-spgwu-tiny:' + self.tag)
 
         count = 0
         runCount = 0
