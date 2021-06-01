@@ -22,25 +22,24 @@ At the time of writing (2020 / 10 / 27), if you want to use the OpenAir-CN for a
 
 **cNF Name** | **Branch Name** | **Tags**   | **Commit at time of writing**              | Ubuntu18 | CentOS7 | CentOS8
 ------------ | --------------- | ---------- | ------------------------------------------ | -------- | ------- | -------
-HSS          | `develop`       | `2021.w03` | `9ed4f34fd73d674cd96eaeb5730d9dbda098b0a1` | X        | X       | X
-HSS          | `master`        | `v1.1.1`   | `1699b6a1565aa8df925dd04b5d632b49ebf24fc8` | X        | X       | X
+HSS          | `develop`       | `2021.w10` | `93dfcbca245ec97652c4d62ba3913a899d956d68` | X        | X       | X
 MME          | `develop`       | `2020.w47` | `82b11abbd83a346bae220517f09fe8e4233db76b` | X        | X       | X
-SPGW-C       | `develop`       | `2021.w04` | `ab1d7f17ac632f06af9ef27f4fb85541051bf974` | X        |         | X
-SPGW-C       | `master`        | `v1.1.0`   | `79378aeedebec30f66d6f7783d90103686f4fabb` | X        |         | X
-SPGW-U-TINY  | `develop`       | `2021.w03` | `e128259dde256e545ff947d177d82dd597c5a483` | X        |         | X
-SPGW-U-TINY  | `master`        | `v1.1.0`   | `c6c4e189d4ec32f84a326af39e37ecd32e962022` | X        |         | X
+SPGW-C       | `develop`       | `2021.w10` | `b10256535e47ffb86c86a8581d9c50b1f380dcf5` | X        |         | X
+SPGW-U-TINY  | `develop`       | `2021.w10` | `acd293e616f879f4dacead152c59384d1e533167` | X        |         | X
+
+**UPDATE: 2021/05/04 --> I have modified the name of the sync script --> `syncComponentsLegacy.sh`.**
 
 ```bash
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
-$ git checkout 2021.w06
-$ ./scripts/syncComponents.sh --hss-branch v1.1.1 --mme-branch 2020.w47 \
-                              --spgwc-branch v1.1.0 --spgwu-tiny-branch v1.1.0
+$ git checkout 2021.w18
+$ ./scripts/syncComponentsLegacy.sh --hss-branch 2021.w10 --mme-branch 2020.w47 \
+                              --spgwc-branch 2021.w10 --spgwu-tiny-branch 2021.w10
 ---------------------------------------------------------
-OAI-HSS    component branch : v1.1.1
+OAI-HSS    component branch : 2021.w10
 OAI-MME    component branch : 2020.w47
-OAI-SPGW-C component branch : v1.1.0
-OAI-SPGW-U component branch : v1.1.0
+OAI-SPGW-C component branch : 2021.w10
+OAI-SPGW-U component branch : 2021.w10
 ---------------------------------------------------------
 ....
 ```
@@ -48,8 +47,6 @@ OAI-SPGW-U component branch : v1.1.0
 **CAUTION: At the time of writing (2020 / 10 / 26), only HSS and MME have a full CentOS-7 support.**
 
 It means that if you are on a CentOS 7 host, you will need to build a CentOS8 image of SPGW-C / SPGW-U-TINY.
-
-**CAUTION: if you are using `develop` branches that are prior to 2020 week 44, please read [this page](./BUILD_IMAGES_PRE_2020_W44.md) instead.**
 
 # 2. Generic Parameters #
 
@@ -186,5 +183,7 @@ oai-spgwu-tiny          production             f2d0a07fba2c        1 minute ago 
 ...
 ```
 
-You are ready to [Configure the Containers](./CONFIGURE_CONTAINERS.md).
+To deploy: 
+
+* [Using a docker-compose easier approach](../docker-compose/oai-mme-legacy/README.md) (RECOMMENDED)
 

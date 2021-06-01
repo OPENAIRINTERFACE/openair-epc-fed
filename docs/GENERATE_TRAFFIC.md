@@ -24,8 +24,6 @@ Once your UE is attached, you can either see if you have internet connection.
 
 ## 0.1. Have you properly configured the DNS in SPGW-C ? ##
 
-See [SPGWC Configure Section](./CONFIGURE_CONTAINERS.md#34-spgw-c)
-
 **YOUR_DNS_IP_ADDRESS** shall have a correct value.
 
 from your EPC **Docker Host**:
@@ -40,28 +38,27 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 
 In this example, the DNS IP address is `192.168.21.179`.
 
+In the `docker-compose.yml` file:
+
+```yml
+            DEFAULT_DNS_IPV4_ADDRESS: 192.168.21.179
+            DEFAULT_DNS_SEC_IPV4_ADDRESS: 8.8.4.4
+```
+
 ## 0.2. May you need to enable "NATTING" on the UE pool ##
 
-See [SPGWU Configure Section](./CONFIGURE_CONTAINERS.md#35-spgw-u)
+In the `docker-compose.yml` file:
 
-Add the `--network_ue_nat_option=yes` option to the python command.
-
-```bash
-$ python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
-          ...
-          --network_ue_nat_option=yes
+```yml
+            NETWORK_UE_NAT_OPTION: 'yes'
 ```
 
 ## 0.3. Last trick: enable PUSH-PROTOCOL on SPGW-C. ##
 
-See [SPGWC Configure Section](./CONFIGURE_CONTAINERS.md#34-spgw-c)
+In the `docker-compose.yml` file:
 
-Add the `--push_protocol_option=yes` option to the python command.
-
-```bash
-$ python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C \
-          ...
-          --push_protocol_option=yes
+```yml
+            PUSH_PROTOCOL_OPTION: 'yes'
 ```
 
 **But us for testing purposes (not use our Internet bandwidth) we prefer to manage traffic internally.**

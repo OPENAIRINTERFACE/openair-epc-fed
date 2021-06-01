@@ -1,0 +1,297 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.openairinterface.org/?page_id=698
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+// Location of the CN executor node
+def cn_ci_host = params.Host_CN_CI_Server
+
+// for lock
+def cn_ci_resource = params.DockerContainers
+def ds_tester_ci_resource = params.DsTester
+
+// Location of the DsTester workspace
+def dsTestFrameworkLocation = params.dsTestFrameworkLocation
+
+// Default tags / branches  --> could be passed on by upstream job or by PR content
+def hssTag = 'develop'
+def hssBranch = 'develop'
+def magmaMmeTag = 'master'
+// No branch for MAGMA
+def spgwcTag = 'develop'
+def spgwcBranch = 'develop'
+def spgwuTag = 'develop'
+def spgwuBranch = 'develop'
+
+// Flags
+def scmEvent = false
+def upstreamEvent = false
+
+//-------------------------------------------------------------------------------
+// Pipeline start
+pipeline {
+  agent {
+    label cn_ci_host
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    lock(cn_ci_resource)
+  }
+  stages {
+    stage ('Verify Parameters') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          // Clean workspace and prepare artifacts location
+          sh "git clean -x -d -f > /dev/null 2>&1"
+          sh "mkdir -p archives DS-TEST-RESULTS"
+
+          // Find out the cause of the trigger
+          for (cause in currentBuild.getBuildCauses()) {
+            if (cause.toString() ==~ /.*GitHubPushCause.*/) {
+              scmEvent = true
+            } else if (cause.toString() ==~ /.*GhprbCause.*/) {
+              scmEvent = true
+            } else if (cause.toString() ==~ /.*UpstreamCause.*/) {
+              upstreamEvent = true
+            }
+          }
+
+          if (upstreamEvent) {
+            if (params.HSS_TAG != null) {
+              hssTag = params.HSS_TAG
+              echo "Upstream Job passed HSS_TAG to use: ${hssTag}"
+            }
+            if (params.HSS_BRANCH != null) {
+              hssBranch = params.HSS_BRANCH
+              echo "Upstream Job passed HSS_BRANCH to use: ${hssBranch}"
+            }
+            if (params.MAGMA_MME_TAG != null) {
+              magmaMmeTag = params.MAGMA_MME_TAG
+              echo "Upstream Job passed MAGMA_MME_TAG to use: ${magmaMmeTag}"
+            }
+            if (params.SPGWC_TAG != null) {
+              spgwcTag = params.SPGWC_TAG
+              echo "Upstream Job passed SPGWC_TAG to use: ${spgwcTag}"
+            }
+            if (params.SPGWC_BRANCH != null) {
+              spgwcBranch = params.SPGWC_BRANCH
+              echo "Upstream Job passed SPGWC_BRANCH to use: ${spgwcBranch}"
+            }
+            if (params.SPGWU_TAG != null) {
+              spgwuTag = params.SPGWU_TAG
+              echo "Upstream Job passed SPGWU_TAG to use: ${spgwuTag}"
+            }
+            if (params.SPGWU_BRANCH != null) {
+              spgwuBranch = params.SPGWU_BRANCH
+              echo "Upstream Job passed SPGWU_BRANCH to use: ${spgwuBranch}"
+            }
+          }
+          // Here we verify if all images tags are available.
+          try {
+            sh 'echo "MAGMA_MME_TAG: magma-mme:' + magmaMmeTag +'" > archives/magma_mme_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' magma-mme:' + magmaMmeTag + ' >> archives/magma_mme_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' magma-mme:' + magmaMmeTag + ' >> archives/magma_mme_image_info.log'
+          } catch (Exception e) {
+            error "Magma MME Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_HSS_TAG: oai-hss:' + hssTag +'" > archives/oai_hss_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+          } catch (Exception e) {
+            error "OAI HSS Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_SPGWC_TAG: oai-spgwc:' + spgwcTag +'" > archives/oai_spgwc_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+          } catch (Exception e) {
+            error "OAI SPGW-C Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_SPGWU_TAG: oai-spgwu-tiny:' + spgwuTag +'" > archives/oai_spgwu_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+          } catch (Exception e) {
+            error "OAI SPGW-U-Tiny Image tag to test does not exist!"
+          }
+
+          // Prepare workspace
+          sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+        }
+      }
+    }
+    stage ('Deploy Whole EPC') {
+      steps {
+        script {
+          // EPC is in idle mode because our DsTester framework starts and stops all cNFs for each scenario
+          echo '\u2705 \u001B[32mDeploy EPC in idle mode\u001B[0m'
+          // Prepare all needed files for docker-compose
+          // First put all correct tags to test
+          sh 'sed -e "s#HSS_IMAGE_TAG#' + hssTag + '#" -e "s#MAGMA_MME_IMAGE_TAG#' + magmaMmeTag + '#" -e "s#SPGWC_IMAGE_TAG#' + spgwcTag + '#" -e "s#SPGWU_IMAGE_TAG#' + spgwuTag + '#" ci-scripts/dsTesterDockerCompose/docker-compose.tplt > ci-scripts/dsTesterDockerCompose/docker-compose.yml'
+          sh 'cp ci-scripts/dsTesterDockerCompose/mme.conf.tplt ci-scripts/dsTesterDockerCompose/mme.conf'
+          sh 'cp component/oai-hss/src/hss_rel14/db/oai_db.cql ci-scripts/dsTesterDockerCompose'
+          // Entrypoints are modified to be inactive for dsTester framework
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-hss/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/hss-entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwc/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/spgwc-entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwu-tiny/scripts/entrypoint.sh > ci-scripts/dsTesterDockerCompose/spgwu-entrypoint-sleep.sh'
+          sh 'chmod 755 ci-scripts/dsTesterDockerCompose/*entrypoint-sleep.sh'
+
+          // Deploy
+          dir('ci-scripts/dsTesterDockerCompose') {
+            // Making sure not leftover.
+            sh 'docker-compose down > /dev/null 2>&1 || true'
+            sh 'docker-compose up -d cicd_db_init > ../../archives/compose_cassandra_up.log 2>&1'
+            int count = 0
+            while (count<6) {
+              sh 'sleep 10'
+              ret = sh returnStdout: true, script: 'docker logs cicd-db-init 2> /dev/null | grep -c OK || true'
+              ret = ret.trim()
+              if (ret == '1') {
+                count = 10
+              }
+              count++
+            }
+            if (count<10) {
+              error('Could not init Cassandra tables in time')
+            }
+            sh 'docker rm cicd-db-init'
+
+            sh 'docker-compose up -d cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
+            // All healthy checks should be done after 50 seconds
+            sh 'sleep 50'
+            // Do a check on number of healthy containers
+            // 6 == cassandra + hss + redis + mme + spgwc + spgwu
+            ret = sh returnStdout: true, script: 'docker-compose ps -a | grep -v unhealthy | grep -c healthy || true'
+            ret = ret.trim()
+            if (ret != '6') {
+              error "Deployment went wrong!"
+            }
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            // Check status on cassandra.
+            try {
+              sh 'docker exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-cassandra >> archives/cassandra_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/cassandra_status.log'
+            }
+            // Check status on redis.
+            try {
+              sh 'docker top cicd-redis | grep -c redis-server > archives/redis_status.log'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-redis >> archives/redis_status.log'
+              sh 'echo "STATUS: OK" >> archives/redis_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/redis_status.log'
+            }
+            // Do docker logs to recover the configuration results
+            try {
+              sh 'docker logs cicd-oai-hss > archives/hss_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-hss >> archives/hss_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/hss_config.log'
+            }
+            try {
+              sh 'docker logs cicd-oai-mme > archives/mme_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-mme >> archives/mme_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/mme_config.log'
+            }
+            try {
+              sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-spgwc >> archives/spgwc_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: OK" >> archives/spgwc_config.log'
+            }
+            try {
+              sh 'docker logs cicd-oai-spgwu-tiny > archives/spgwu_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-spgwu-tiny >> archives/spgwu_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/spgwu_config.log'
+            }
+          }
+        }
+        success {
+          script {
+            sh 'echo "DEPLOYMENT: OK" > archives/deployment_status.log'
+          }
+        }
+        unsuccessful {
+          script {
+            sh 'echo "DEPLOYMENT: KO" > archives/deployment_status.log'
+          }
+        }
+      }
+    }
+    stage ('Test EPC') {
+      steps {
+        lock (ds_tester_ci_resource) {
+          script {
+            echo '\u2705 \u001B[32mTesting with DsTester framework\u001B[0m'
+            sh 'cd ' + dsTestFrameworkLocation + ' && git clean -x -d -f > /dev/null'
+            sh 'cd ' + dsTestFrameworkLocation + '/scripts && export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.:/usr/local/devsol/bin && CI_ENV=True CI_MAGMA=True SRC_BASE_DIR=' + WORKSPACE + ' ./run-4gc.bash -pt --shark --detach --get-results --4g > ' + WORKSPACE + '/archives/run-4g-dstester.log 2>&1'
+            sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+            sh 'cd ' + dsTestFrameworkLocation + ' && git stash > /dev/null'
+            sh 'cd ' + dsTestFrameworkLocation + ' && git stash clear > /dev/null'
+          }
+        }
+      }
+    }
+    stage ('Undeploy Whole EPC') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mUn-Deploy EPC\u001B[0m'
+          dir('ci-scripts/dsTesterDockerCompose') {
+            sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        dir('ci-scripts/dsTesterDockerCompose') {
+          sh 'docker-compose down > ../../archives/compose_preventive_down.log 2>&1'
+        }
+        // Zipping all archived log files
+        sh "zip -r -qq fed_docker_logs.zip archives DS-TEST-RESULTS/*.tar DS-TEST-RESULTS/status.txt"
+        if (fileExists('fed_docker_logs.zip')) {
+          archiveArtifacts artifacts: 'fed_docker_logs.zip'
+        }
+        if (fileExists('test_results_oai_epc.html')) {
+          sh 'mv test_results_oai_epc.html test_results_magma_oai_epc.html'
+          archiveArtifacts artifacts: 'test_results_magma_oai_epc.html'
+        }
+      }
+    }
+  }
+}

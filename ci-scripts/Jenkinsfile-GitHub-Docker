@@ -38,10 +38,11 @@ def cn_ci_host = params.Host_CN_CI_Server
 def cn_ci_resource = params.DockerContainers
 def ds_tester_ci_resource = params.DsTester
 
-// Location of the 2nd CN executor
-def new_host_flag = false
-def new_host = ""
-def new_host_user = ""
+// Location of the DsTester workspace
+def dsTestFrameworkLocation = params.dsTestFrameworkLocation
+
+// When triggered by upstream, specify which tag to use
+def upstreamTagToUse = params.upstreamTagToUse
 
 // Location of the CN tester
 def dsT_host_flag = false
@@ -89,19 +90,6 @@ pipeline {
           JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
           JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
 
-          if (params.Host_CN_CI_2nd_Server_Flag != null) {
-            new_host_flag = params.Host_CN_CI_2nd_Server_Flag
-            if (new_host_flag) {
-              new_host = params.Host_CN_CI_2nd_Server
-              new_host_user = params.Host_CN_CI_2nd_Server_Login
-              echo "1st Node   is ${NODE_NAME}"
-              echo "2nd Node   is ${new_host}"
-            } else {
-              echo "Node       is ${NODE_NAME}"
-            }
-          } else {
-            echo "Node       is ${NODE_NAME}"
-          }
           if (params.DS_Tester_Server_Flag != null) {
             dsT_host_flag = params.DS_Tester_Server_Flag
             if (dsT_host_flag) {
@@ -189,19 +177,11 @@ pipeline {
                   }
                 }
               }
-              sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+              sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             } else {
-              sh './scripts/syncComponents.sh'
+              sh './scripts/syncComponentsLegacy.sh'
             }
             sh "mkdir -p archives DS-TEST-RESULTS"
-            if (new_host_flag) {
-              // Prepare the workspace in remote server
-              myShCmd("if [ ! -e .git ]; then git clone --quiet ${GIT_URL} .; else git fetch --quiet --prune; fi", new_host_flag, new_host_user, new_host)
-              myShCmd('git clean -x -d -f > /dev/null 2>&1', new_host_flag, new_host_user, new_host)
-              myShCmd("git checkout -f ${GIT_COMMIT}", new_host_flag, new_host_user, new_host)
-              myShCmd('./scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch, new_host_flag, new_host_user, new_host)
-              myShCmd('mkdir archives DS-TEST-RESULTS', new_host_flag, new_host_user, new_host)
-            }
           }
           if (upstreamEvent) {
             if (params.HSS_TAG != null) {
@@ -237,19 +217,44 @@ pipeline {
               echo "Upstream Job passed SPGWU_BRANCH to use: ${spgwuBranch}"
             }
             sh "git clean -x -d -f > /dev/null 2>&1"
-            sh "git checkout -f master"
-            sh "git pull origin master"
-            sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+            sh "git fetch --prune > /dev/null 2>&1"
+            sh 'git checkout -f ' + upstreamTagToUse
+            sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir -p archives DS-TEST-RESULTS"
-            if (new_host_flag) {
-              // Prepare the workspace in remote server
-              myShCmd("if [ ! -e .git ]; then git clone --quiet ${GIT_URL} .; else git fetch --quiet --prune; fi", new_host_flag, new_host_user, new_host)
-              myShCmd('git clean -x -d -f > /dev/null 2>&1', new_host_flag, new_host_user, new_host)
-              myShCmd('git checkout -f master', new_host_flag, new_host_user, new_host)
-              myShCmd('git pull origin master', new_host_flag, new_host_user, new_host)
-              myShCmd('./scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch, new_host_flag, new_host_user, new_host)
-              myShCmd('mkdir -p archives DS-TEST-RESULTS', new_host_flag, new_host_user, new_host)
-            }
+          }
+          // In case of a manually triggered job
+          if ((!upstreamEvent) && (!scmEvent)) {
+            sh "git clean -x -d -f > /dev/null 2>&1"
+            sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+            sh "mkdir -p archives DS-TEST-RESULTS"
+          }
+          try {
+            sh 'echo "OAI_HSS_TAG: oai-hss:' + hssTag +'" > archives/oai_hss_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+          } catch (Exception e) {
+            error "OAI HSS Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_MME_TAG: oai-mme:' + mmeTag +'" > archives/oai_mme_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-mme:' + mmeTag + ' >> archives/oai_mme_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-mme:' + mmeTag + ' >> archives/oai_mme_image_info.log'
+          } catch (Exception e) {
+            error "OAI MME Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_SPGWC_TAG: oai-spgwc:' + spgwcTag +'" > archives/oai_spgwc_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+          } catch (Exception e) {
+            error "OAI SPGW-C Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_SPGWU_TAG: oai-spgwu-tiny:' + spgwuTag +'" > archives/oai_spgwu_image_info.log'
+            sh 'docker image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+            sh 'docker image inspect --format=\'Date = {{.Created}}\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+          } catch (Exception e) {
+            error "OAI SPGW-U-Tiny Image tag to test does not exist!"
           }
         }
       }
@@ -265,7 +270,7 @@ pipeline {
               hssCommit = sh returnStdout: true, script: "${cmd}"
               hssCommit = hssCommit.trim()
               echo "Rebuild HSS Temporary Image on Commit: " + hssCommit
-              myShCmd('docker build --target oai-hss --tag oai-hss:' + hssTag + ' --file component/oai-hss/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-hss > archives/hss_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              sh 'docker build --target oai-hss --tag oai-hss:' + hssTag + ' --file component/oai-hss/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-hss > archives/hss_docker_image_build.log 2>&1'
             }
           }
         }
@@ -277,7 +282,7 @@ pipeline {
               mmeCommit = sh returnStdout: true, script: "${cmd}"
               mmeCommit = mmeCommit.trim()
               echo "Rebuild MME Temporary Image on Commit: " + mmeCommit
-              myShCmd('docker build --target oai-mme --tag oai-mme:' + mmeTag + ' --file component/oai-mme/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-mme > archives/mme_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              sh 'docker build --target oai-mme --tag oai-mme:' + mmeTag + ' --file component/oai-mme/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-mme > archives/mme_docker_image_build.log 2>&1'
             }
           }
         }
@@ -289,7 +294,7 @@ pipeline {
               spgwcCommit = sh returnStdout: true, script: "${cmd}"
               spgwcCommit = spgwcCommit.trim()
               echo "Rebuild SPGW-C Temporary Image on Commit: " + spgwcCommit
-              myShCmd('docker build --target oai-spgwc --tag oai-spgwc:' + spgwcTag + ' --file component/oai-spgwc/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwc > archives/spgwc_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              sh 'docker build --target oai-spgwc --tag oai-spgwc:' + spgwcTag + ' --file component/oai-spgwc/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwc > archives/spgwc_docker_image_build.log 2>&1'
             }
           }
         }
@@ -301,7 +306,56 @@ pipeline {
               spgwuCommit = sh returnStdout: true, script: "${cmd}"
               spgwuCommit = spgwuCommit.trim()
               echo "Rebuild SPGW-U-TINY Temporary Image on Commit: " + spgwuCommit
-              myShCmd('docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:' + spgwuTag + ' --file component/oai-spgwu-tiny/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwu-tiny > archives/spgwu_docker_image_build.log 2>&1', new_host_flag, new_host_user, new_host)
+              sh 'docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:' + spgwuTag + ' --file component/oai-spgwu-tiny/docker/Dockerfile.ubuntu18.04 --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwu-tiny > archives/spgwu_docker_image_build.log 2>&1'
+            }
+          }
+        }
+      }
+    }
+    stage ('Deploy Whole EPC') {
+      steps {
+        script {
+          // EPC is in idle mode because our DsTester framework starts and stops all cNFs for each scenario
+          echo '\u2705 \u001B[32mDeploy EPC in idle mode\u001B[0m'
+          // Prepare all needed files for docker-compose
+          // First put all correct tags to test
+          sh 'sed -e "s#HSS_IMAGE_TAG#' + hssTag + '#" -e "s#MME_IMAGE_TAG#' + mmeTag + '#" -e "s#SPGWC_IMAGE_TAG#' + spgwcTag + '#" -e "s#SPGWU_IMAGE_TAG#' + spgwuTag + '#" ci-scripts/dsTesterDockerComposeLegacy/docker-compose.tplt > ci-scripts/dsTesterDockerComposeLegacy/docker-compose.yml'
+          sh 'cp component/oai-hss/src/hss_rel14/db/oai_db.cql ci-scripts/dsTesterDockerComposeLegacy'
+          // Entrypoints are modified to be inactive for dsTester framework
+          // MME is a bit more complex. So local
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-hss/scripts/entrypoint.sh > ci-scripts/dsTesterDockerComposeLegacy/hss-entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwc/scripts/entrypoint.sh > ci-scripts/dsTesterDockerComposeLegacy/spgwc-entrypoint-sleep.sh'
+          sh 'sed -e "s@exec.*@sleep infinity@" component/oai-spgwu-tiny/scripts/entrypoint.sh > ci-scripts/dsTesterDockerComposeLegacy/spgwu-entrypoint-sleep.sh'
+          sh 'chmod 755 ci-scripts/dsTesterDockerComposeLegacy/*entrypoint-sleep.sh'
+
+          // Deploy
+          dir('ci-scripts/dsTesterDockerComposeLegacy') {
+            // Making sure not leftover.
+            sh 'docker-compose down > /dev/null 2>&1 || true'
+            sh 'docker-compose up -d cicd_db_init > ../../archives/compose_cassandra_up.log 2>&1'
+            int count = 0
+            while (count<6) {
+              sh 'sleep 10'
+              ret = sh returnStdout: true, script: 'docker logs cicd-db-init 2> /dev/null | grep -c OK || true'
+              ret = ret.trim()
+              if (ret == '1') {
+                count = 10
+              }
+              count++
+            }
+            if (count<10) {
+              error('Could not init Cassandra tables in time')
+            }
+            sh 'docker rm cicd-db-init'
+
+            sh 'docker-compose up -d cicd_oai_mme cicd_oai_spgwu > ../../archives/compose_epc_up.log 2>&1'
+            sh 'sleep 20'
+            // Do a check on number of healthy containers
+            // 5 == cassandra + hss + mme + spgwc + spgwu
+            ret = sh returnStdout: true, script: 'docker-compose ps -a | grep -v unhealthy | grep -c healthy || true'
+            ret = ret.trim()
+            if (ret != '5') {
+              error "Deployment went wrong!"
             }
           }
         }
@@ -309,57 +363,48 @@ pipeline {
       post {
         always {
           script {
-            if (hssRebuildFlag) {
-              copyFrom2ndServer('archives/hss_docker_image_build.log', 'archives', new_host_flag, new_host_user, new_host)
+            // Check status on cassandra.
+            try {
+              sh 'docker exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-cassandra >> archives/cassandra_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/cassandra_status.log'
             }
-            if (mmeRebuildFlag) {
-              copyFrom2ndServer('archives/mme_docker_image_build.log', 'archives', new_host_flag, new_host_user, new_host)
+            // Do docker logs to recover the configuration results
+            try {
+              sh 'docker logs cicd-oai-hss > archives/hss_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-hss >> archives/hss_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/hss_config.log'
             }
-            if (spgwcRebuildFlag) {
-              copyFrom2ndServer('archives/spgwc_docker_image_build.log', 'archives', new_host_flag, new_host_user, new_host)
+            try {
+              sh 'docker logs cicd-oai-mme > archives/mme_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-mme >> archives/mme_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/mme_config.log'
             }
-            if (spgwuRebuildFlag) {
-              copyFrom2ndServer('archives/spgwu_docker_image_build.log', 'archives', new_host_flag, new_host_user, new_host)
+            try {
+              sh 'docker logs cicd-oai-spgwc > archives/spgwc_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-spgwc >> archives/spgwc_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: OK" >> archives/spgwc_config.log'
+            }
+            try {
+              sh 'docker logs cicd-oai-spgwu-tiny > archives/spgwu_config.log 2>&1'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-oai-spgwu-tiny >> archives/spgwu_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/spgwu_config.log'
             }
           }
         }
-      }
-    }
-    stage ('Deploy Whole EPC') {
-      stages {
-        stage ('Create Public Network') {
-          steps {
-            script {
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=CreateNetworks', new_host_flag, new_host_user, new_host)
-            }
+        success {
+          script {
+            sh 'echo "DEPLOYMENT: OK" > archives/deployment_status.log'
           }
         }
-        stage ('Deploy Containers') {
-          steps {
-            script {
-              // Deploy and Configure Cassandra
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=DeployCassandra', new_host_flag, new_host_user, new_host)
-
-              // Deploy and Configure HSS
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=DeployHSS --tag=' + hssTag, new_host_flag, new_host_user, new_host)
-
-              // Deploy and Configure MME
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=DeployMME --tag=' + mmeTag, new_host_flag, new_host_user, new_host)
-
-              // Deploy and Configure SPGW-C
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=DeploySPGWC --tag=' + spgwcTag, new_host_flag, new_host_user, new_host)
-
-              // Deploy and Configure SPGW-U
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=DeploySPGWU --tag=' + spgwuTag, new_host_flag, new_host_user, new_host)
-            }
-          }
-          post {
-            always {
-              script {
-                copyFrom2ndServer('archives/*_config.log', 'archives', new_host_flag, new_host_user, new_host)
-                copyFrom2ndServer('archives/cassandra_status.log', 'archives', new_host_flag, new_host_user, new_host)
-              }
-            }
+        unsuccessful {
+          script {
+            sh 'echo "DEPLOYMENT: KO" > archives/deployment_status.log'
           }
         }
       }
@@ -369,30 +414,20 @@ pipeline {
       steps {
         lock (ds_tester_ci_resource) {
           script {
-            myShCmd('cd /home/oaici/CI-dev-ops-cn && git clean -x -d -f > /dev/null', new_host_flag, new_host_user, new_host)
-            myShCmdWithLog('cd /home/oaici/CI-dev-ops-cn/scripts && CI_ENV=True SRC_BASE_DIR=/tmp/CI-CN-FED ./run-4gc.bash -pt --shark --detach --get-results --4g', 'archives/run-4g-dstester.log', new_host_flag, new_host_user, new_host)
-            copyFrom2ndServer('DS-TEST-RESULTS/status.txt', 'DS-TEST-RESULTS', new_host_flag, new_host_user, new_host)
-            copyFrom2ndServer('DS-TEST-RESULTS/*.tar', 'DS-TEST-RESULTS', new_host_flag, new_host_user, new_host)
-            sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+            sh 'cd ' + dsTestFrameworkLocation + ' && git clean -x -d -f > /dev/null'
+            sh 'cd ' + dsTestFrameworkLocation + '/scripts && export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.:/usr/local/devsol/bin && CI_ENV=True SRC_BASE_DIR=' + WORKSPACE + ' ./run-4gc.bash -pt --shark --detach --get-results --4g > ' + WORKSPACE + '/archives/run-4g-dstester.log 2>&1'
+            sh 'cd ' + dsTestFrameworkLocation + ' && git stash > /dev/null'
+            sh 'cd ' + dsTestFrameworkLocation + ' && git stash clear > /dev/null'
           }
         }
       }
     }
     stage ('Undeploy EPC') {
-      stages {
-        stage ('Undeploy Containers') {
-          steps {
-            script {
-              // Remove the containers
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=RemoveAllContainers', new_host_flag, new_host_user, new_host)
-            }
-          }
-        }
-        stage ('Delete Public Network') {
-          steps {
-            script {
-              myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=RemoveNetworks', new_host_flag, new_host_user, new_host)
-            }
+      steps {
+        script {
+          echo '\u2705 \u001B[32mUn-Deploy EPC\u001B[0m'
+          dir('ci-scripts/dsTesterDockerComposeLegacy') {
+            sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
           }
         }
       }
@@ -402,18 +437,18 @@ pipeline {
       steps {
         script {
           if (hssRebuildFlag) {
-            myShCmd('docker image rm oai-hss:' + hssTag, new_host_flag, new_host_user, new_host)
+            sh 'docker image rm oai-hss:' + hssTag
           }
           if (mmeRebuildFlag) {
-            myShCmd('docker image rm oai-mme:' + mmeTag, new_host_flag, new_host_user, new_host)
+            sh 'docker image rm oai-mme:' + mmeTag
           }
           if (spgwcRebuildFlag) {
-            myShCmd('docker image rm oai-spgwc:' + spgwcTag, new_host_flag, new_host_user, new_host)
+            sh 'docker image rm oai-spgwc:' + spgwcTag
           }
           if (spgwuRebuildFlag) {
-            myShCmd('docker image rm oai-spgwu:' + spgwuTag, new_host_flag, new_host_user, new_host)
+            sh 'docker image rm oai-spgwu:' + spgwuTag
           }
-          myShCmd('docker image prune --force', new_host_flag, new_host_user, new_host)
+          sh 'docker image prune --force'
           // No need to remove anything in the clean-up post stage
           anyRebuildFlag = false
         }
@@ -423,42 +458,44 @@ pipeline {
   post {
     always {
       script {
-        // Removing all containers
-        myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=RemoveAllContainers', new_host_flag, new_host_user, new_host)
-        // Removing the network
-        myShCmd('python3 ./ci-scripts/dsTestDeployTools.py --action=RemoveNetworks', new_host_flag, new_host_user, new_host)
+        // Removing all containers and networks
+        dir('ci-scripts/dsTesterDockerComposeLegacy') {
+          sh 'docker-compose down > ../../archives/compose_normal_down.log 2>&1'
+        }
         // Removing any leftover images
         if (anyRebuildFlag) {
           if (hssRebuildFlag) {
             try {
-              myShCmd('docker image rm oai-hss:' + hssTag, new_host_flag, new_host_user, new_host)
+              sh 'docker image rm oai-hss:' + hssTag
             } catch (Exception e) {
               echo "No problem: we may have already remove it"
             }
           }
           if (mmeRebuildFlag) {
             try {
-              myShCmd('docker image rm oai-mme:' + mmeTag, new_host_flag, new_host_user, new_host)
+              sh 'docker image rm oai-mme:' + mmeTag
             } catch (Exception e) {
               echo "No problem: we may have already remove it"
             }
           }
           if (spgwcRebuildFlag) {
             try {
-              myShCmd('docker image rm oai-spgwc:' + spgwcTag, new_host_flag, new_host_user, new_host)
+              sh 'docker image rm oai-spgwc:' + spgwcTag
             } catch (Exception e) {
               echo "No problem: we may have already remove it"
             }
           }
           if (spgwuRebuildFlag) {
             try {
-              myShCmd('docker image rm oai-spgwu-tiny:' + spgwuTag, new_host_flag, new_host_user, new_host)
+              sh 'docker image rm oai-spgwu-tiny:' + spgwuTag
             } catch (Exception e) {
               echo "No problem: we may have already remove it"
             }
           }
-          myShCmd('docker image prune --force', new_host_flag, new_host_user, new_host)
+          sh 'docker image prune --force'
         }
+        // Generating the HTML report
+        sh 'python3 ./ci-scripts/dsTestGenerateHTMLReportLegacy.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
 
         // Zipping all archived log files
         sh "zip -r -qq fed_docker_logs.zip archives DS-TEST-RESULTS/*.tar DS-TEST-RESULTS/status.txt"
@@ -471,44 +508,4 @@ pipeline {
       }
     }
   }
-}
-
-// Functions
-
-def copyTo2ndServer(filename, flag, user, host) {
-  if (flag) {
-    sh "scp ${filename} ${user}@${host}:/tmp/CI-CN-FED"
-  }
-}
-
-def copyFrom2ndServer(filename, target, flag, user, host) {
-  if (flag) {
-    sh "scp ${user}@${host}:/tmp/CI-CN-FED/${filename} ${target}"
-  }
-}
-
-def myShCmd(cmd, flag, user, host) {
-  if (flag) {
-    sh "ssh -t -t ${user}@${host} 'cd /tmp/CI-CN-FED && ${cmd}'"
-  } else {
-    sh "${cmd}"
-  }
-}
-
-def myShCmdWithLog(cmd, logFile, flag, user, host) {
-  if (flag) {
-    sh "ssh -t -t ${user}@${host} 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.:/usr/local/devsol/bin && ${cmd}' > ${logFile} 2>&1"
-  } else {
-    sh "${cmd} > ${logFile} 2>&1"
-  }
-}
-
-def myShRetCmd(cmd, flag, user, host) {
-  if (flag) {
-    ret = sh returnStdout: true, script: "ssh -t -t ${user}@${host} 'cd /tmp/CI-CN-FED && ${cmd}'"
-  } else {
-    ret = sh returnStdout: true, script: "${cmd}"
-  }
-  ret = ret.trim()
-  return ret
 }

@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+    cicd_cassandra:
+        image: cassandra:2.1
+        container_name: cicd-cassandra
+        networks:
+            cicd_private_net:
+                ipv4_address: 192.168.68.2
+        environment:
+            CASSANDRA_CLUSTER_NAME: "OAI HSS Cluster"
+            CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+        healthcheck:
+            test: /bin/bash -c "nodetool status"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    cicd_db_init:
+        image: cassandra:2.1
+        container_name: cicd-db-init
+        depends_on: [cicd_cassandra]
+        deploy:
+            restart_policy:
+                condition: on-failure
+                max_attempts: 10
+        networks:
+            cicd_private_net:
+                ipv4_address: 192.168.68.4
+        volumes:
+            - ./oai_db.cql:/home/oai_db.cql
+        entrypoint: /bin/bash -c "cqlsh --file /home/oai_db.cql 192.168.68.2 && echo 'OK'"
+
+    cicd_oai_hss:
+        image: oai-hss:HSS_IMAGE_TAG
+        container_name: cicd-oai-hss
+        privileged: true
+        depends_on: [cicd_cassandra]
+        networks:
+            cicd_private_net:
+                ipv4_address: 192.168.68.3
+            cicd_public_net:
+                ipv4_address: 192.168.61.194
+        environment:
+            TZ: Europe/Paris
+            REALM: openairinterface.org
+            HSS_FQDN: hss.openairinterface.org
+            PREFIX: /openair-hss/etc
+            cassandra_Server_IP: 192.168.68.2
+            OP_KEY: 63bfa50ee6523365ff14c1f45f88737d
+            LTE_K: 0c0a34601d4f07677303652c0462535b
+            APN1: apn1.carrier.com
+            APN2: apn2.carrier.com
+            FIRST_IMSI: 100000000000001
+            NB_USERS: 200
+        volumes:
+            - ./hss-entrypoint-sleep.sh:/openair-hss/bin/hss-entrypoint-sleep.sh
+            - ./hss-healthy-check.sh:/openair-hss/bin/hss-healthy-check.sh
+        entrypoint: /bin/bash -c "/openair-hss/bin/hss-entrypoint-sleep.sh"
+        healthcheck:
+            test: /bin/bash -c "/openair-hss/bin/hss-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    cicd_redis:
+        image: redis:6.0.5
+        container_name: cicd-redis
+        privileged: true
+        networks:
+            cicd_public_net:
+                ipv4_address: 192.168.61.195
+        volumes:
+            - ./redis_extern.conf:/usr/local/etc/redis/redis.conf
+        entrypoint: /bin/bash -c "redis-server /usr/local/etc/redis/redis.conf"
+        healthcheck:
+            test: /bin/bash -c "redis-cli -h 192.168.61.195 -p 6380 ping"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    cicd_magma_mme:
+        image: magma-mme:MAGMA_MME_IMAGE_TAG
+        container_name: cicd-oai-mme
+        hostname: mme
+        privileged: true
+        depends_on: [cicd_oai_hss, cicd_redis]
+        networks:
+            cicd_public_net:
+                ipv4_address: 192.168.61.196
+        environment:
+            TZ: Europe/Paris
+            REALM: openairinterface.org
+            PREFIX: /openair-mme/etc
+            HSS_HOSTNAME: hss
+            HSS_FQDN: hss.openairinterface.org
+            HSS_REALM: openairinterface.org
+            MME_FQDN: mme.openairinterface.org
+            FEATURES: mme_oai
+        volumes:
+            - ./mme_fd.sprint.conf:/magma-mme/etc/mme_fd.conf.tmplt
+            - ./mme.conf:/magma-mme/etc/mme.conf
+            - ./mme-cfg.sh:/magma-mme/scripts/mme-cfg.sh
+            - ./mme-healthy-check.sh:/magma-mme/bin/mme-healthy-check.sh
+        entrypoint: /bin/bash -c "cd /magma-mme/scripts; ./mme-cfg.sh"
+        healthcheck:
+            test: /bin/bash -c "/magma-mme/bin/mme-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    cicd_oai_spgwc:
+        image: oai-spgwc:SPGWC_IMAGE_TAG
+        privileged: true
+        depends_on: [cicd_magma_mme]
+        container_name: cicd-oai-spgwc
+        networks:
+            cicd_public_net:
+                ipv4_address: 192.168.61.197
+        environment:
+            TZ: Europe/Paris
+            SGW_INTERFACE_NAME_FOR_S11: eth0
+            PGW_INTERFACE_NAME_FOR_SX: eth0
+            DEFAULT_DNS_IPV4_ADDRESS: 192.168.18.129
+            DEFAULT_DNS_SEC_IPV4_ADDRESS: 8.8.4.4
+            PUSH_PROTOCOL_OPTION: 'true'
+            APN_NI_1: apn1.carrier.com
+            APN_NI_2: apn2.carrier.com
+            DEFAULT_APN_NI_1: apn1.carrier.com
+            UE_IP_ADDRESS_POOL_1: '12.0.0.2 - 12.0.0.254'
+            UE_IP_ADDRESS_POOL_2: '12.1.1.2 - 12.1.1.254'
+            MCC: 320
+            MNC: 230
+            MNC03: '230'
+            TAC: 5556
+            GW_ID: 1
+            REALM: openairinterface.org
+        volumes:
+            - ./spgwc-entrypoint-sleep.sh:/openair-spgwc/bin/spgwc-entrypoint-sleep.sh
+            - ./spgwc-healthy-check.sh:/openair-spgwc/bin/spgwc-healthy-check.sh
+        entrypoint: /bin/bash -c "/openair-spgwc/bin/spgwc-entrypoint-sleep.sh"
+        healthcheck:
+            test: /bin/bash -c "/openair-spgwc/bin/spgwc-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    cicd_oai_spgwu:
+        image: oai-spgwu-tiny:SPGWU_IMAGE_TAG
+        privileged: true
+        container_name: cicd-oai-spgwu-tiny
+        depends_on: [cicd_oai_spgwc]
+        networks:
+            cicd_public_net:
+                ipv4_address: 192.168.61.198
+        environment:
+            TZ: Europe/Paris
+            PID_DIRECTORY: /var/run
+            INSTANCE: 1
+            SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP: eth0
+            PGW_INTERFACE_NAME_FOR_SGI: eth0
+            SGW_INTERFACE_NAME_FOR_SX: eth0
+            SPGWC0_IP_ADDRESS: 192.168.61.197
+            NETWORK_UE_IP: '12.0.0.0/24'
+            NETWORK_UE_NAT_OPTION: 'yes'
+            MCC: 320
+            MNC: 230
+            MNC03: '230'
+            TAC: 5556
+            GW_ID: 1
+            REALM: openairinterface.org
+        volumes:
+            - ./spgwu-entrypoint-sleep.sh:/openair-spgwu-tiny/bin/spgwu-entrypoint-sleep.sh
+            - ./spgwu-healthy-check.sh:/openair-spgwu-tiny/bin/spgwu-healthy-check.sh
+        entrypoint: /bin/bash -c "/openair-spgwu-tiny/bin/spgwu-entrypoint-sleep.sh"
+        healthcheck:
+            test: /bin/bash -c "/openair-spgwu-tiny/bin/spgwu-healthy-check.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+networks:
+    cicd_private_net:
+        name: cicd-oai-private-net
+        ipam:
+            config:
+                - subnet: 192.168.68.0/26
+    cicd_public_net:
+        name: cicd-oai-public-net
+        ipam:
+            config:
+                - subnet: 192.168.61.192/26
