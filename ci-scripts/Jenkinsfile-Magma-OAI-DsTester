@@ -185,10 +185,10 @@ pipeline {
             // All healthy checks should be done after 50 seconds
             sh 'sleep 50'
             // Do a check on number of healthy containers
-            // 5 == cassandra + hss + mme + spgwc + spgwu
+            // 6 == cassandra + hss + redis + mme + spgwc + spgwu
             ret = sh returnStdout: true, script: 'docker-compose ps -a | grep -v unhealthy | grep -c healthy || true'
             ret = ret.trim()
-            if (ret != '5') {
+            if (ret != '6') {
               error "Deployment went wrong!"
             }
           }
@@ -207,6 +207,7 @@ pipeline {
             // Check status on redis.
             try {
               sh 'docker top cicd-redis | grep -c redis-server > archives/redis_status.log'
+              sh 'docker inspect --format=\'STATUS: {{.State.Health.Status}}\' cicd-redis >> archives/redis_status.log'
               sh 'echo "STATUS: OK" >> archives/redis_status.log'
             } catch (Exception e) {
               sh 'echo "STATUS: KO" >> archives/redis_status.log'
