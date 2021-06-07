@@ -277,6 +277,8 @@ class deployWithOAIran:
             sys.exit(-1)
 
         subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' --health-cmd "pgrep --count oai_spgwc" -d oai-spgwc:' + self.tag)
+        time.sleep(2)
+        subprocess_run_w_echo(self.cli + ' exec -d cicd-oai-spgwc /bin/bash -c "nohup tcpdump -i any -w /openair-spgwc/spgwc.pcap > /dev/null 2>&1"')
 
         count = 0
         runCount = 0
@@ -433,6 +435,7 @@ class deployWithOAIran:
 
         # First stop tcpdump capture on MME container
         subprocess_run_w_echo(self.cli + ' exec cicd-oai-mme /bin/bash -c "killall tcpdump"')
+        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "killall tcpdump"')
         time.sleep(2)
         try:
             res = subprocess.check_output(self.cli + ' exec cicd-oai-mme /bin/bash -c "ls /' + prefix + '-mme/*.pcap"', shell=True, universal_newlines=True)
@@ -445,6 +448,7 @@ class deployWithOAIran:
         subprocess_run_w_echo(self.cli + ' logs cicd-oai-mme > archives/mme.log 2>&1 || true')
         subprocess_run_w_echo(self.cli + ' logs cicd-oai-hss > archives/hss.log 2>&1 || true')
         subprocess_run_w_echo(self.cli + ' logs cicd-oai-spgwc > archives/spgwc.log 2>&1 || true')
+        subprocess_run_w_echo(self.cli + ' cp cicd-oai-spgwc:/openair-spgwc/spgwc.pcap archives/ || true')
         subprocess_run_w_echo(self.cli + ' logs cicd-oai-spgwu-tiny > archives/spgwu-tiny.log 2>&1 || true')
         subprocess_run_w_echo(self.cli + ' logs cicd-oai-enb > archives/enb.log 2>&1 || true')
         subprocess_run_w_echo(self.cli + ' logs cicd-oai-ue > archives/ue.log 2>&1 || true')

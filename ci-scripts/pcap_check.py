@@ -89,6 +89,13 @@ GTPV2_MSG_TYPE__MODIFY_BEARER_RESPONSE = '35'
 GTPV2_MSG_TYPE__DELETE_SESSION_REQUEST = '36'
 GTPV2_MSG_TYPE__DELETE_SESSION_RESPONSE = '37'
 
+# PGCP Constants
+PFCP_MSG_TYPE__SX_HEARTBEAT_REQUEST = '1'
+PFCP_MSG_TYPE__SX_HEARTBEAT_RESPONSE = '2'
+PFCP_MSG_TYPE__SX_ASSOCIATION_SETUP_REQUEST = '5'
+PFCP_MSG_TYPE__SX_ASSOCIATION_SETUP_RESPONSE = '6'
+PFCP_NODE_ID_TYPE__FQDN = '2'
+
 def check_if_mme_connects_to_hss(pcap_file):
 	""" Normally the 2 first DIAMETER packets are the MME <-> HSS peerage """
 	res = {}
@@ -211,7 +218,7 @@ def check_if_ue_attachs(pcap_file):
 									res['enb_transportlayeraddress'] = myLayers[0].transportlayeraddressipv4
 									#print (myLayers[1].nas_eps_nas_msg_emm_type)
 									print('UE --> send UE INITIAL UE CONTEXT RESPONSE (pkt #' + str(cnt) + ')')
-								
+
 					if pkt.sctp.chunk_type == CHUNK_TYPE__SACK:
 						if pkt.ip.src == MME_IP_ADDRESS and pkt.ip.dst == ENB_IP_ADDRESS and 'S1AP' in pkt:
 							if pkt.s1ap.procedurecode == PROC_CODE__ID_DOWNLINKNASTRANSPORT and pkt.s1ap.s1ap_pdu == S1AP_PDU_INITIATINGMESSAGE:
@@ -263,4 +270,65 @@ def check_if_ue_attachs(pcap_file):
 		cap.close()
 	except Exception as e:
 		print('Could not open MME PCAP file')
+	return res
+
+def check_if_spgwu_connects_to_spgwc(pcap_file):
+	""" Normally the 2 first PFCP packets are the SPGWC <-> SPGWU association """
+	res = {}
+	res['spgwu_request'] = False
+	res['spgwc_answer'] = False
+	res['spgwu_fdqn'] = ''
+	res['spgwc_ipv4'] = ''
+	try:
+		cap = {}
+		cap = pyshark.FileCapture(pcap_file, keep_packets=True, display_filter="udp.port == 8805")
+		cnt = 0
+		for pkt in cap:
+			if pkt is not None:
+				if 'PFCP' in pkt:
+					if cnt == 0:
+						if pkt.pfcp.msg_type == PFCP_MSG_TYPE__SX_ASSOCIATION_SETUP_REQUEST and pkt.pfcp.node_id_type == PFCP_NODE_ID_TYPE__FQDN: 
+							res['spgwu_request'] = True
+							res['spgwu_fdqn'] = pkt.pfcp.node_id_fqdn
+					if cnt == 1:
+						if pkt.pfcp.msg_type == PFCP_MSG_TYPE__SX_ASSOCIATION_SETUP_RESPONSE:
+							if pkt.pfcp.cause == '1':
+								res['spgwc_answer'] = True
+								res['spgwc_ipv4']=pkt.pfcp.node_id_ipv4
+					cnt += 1
+		cap.close()
+	except Exception as e:
+		print('Could not open SPGWC PCAP file')
+	return res
+
+def check_cups_heartbeat(pcap_file):
+	""" Normally the heartbeat request/response pace is one every second """
+	res = {}
+	res['spgwc_hrt_request'] = False
+	res['spgwu_hrt_answer'] = False
+	res['spgwc_hrt_nb_req'] = '0'
+	res['spgwu_hrt_nb_res'] = '0'
+	nb_requests = 0
+	nb_responses = 0
+	try:
+		cap = {}
+		cap = pyshark.FileCapture(pcap_file, keep_packets=True, display_filter="udp.port == 8805")
+		cnt = 0
+		for pkt in cap:
+			if pkt is not None:
+				if 'PFCP' in pkt:
+					if pkt.pfcp.msg_type == PFCP_MSG_TYPE__SX_HEARTBEAT_REQUEST:
+						nb_requests += 1
+					if pkt.pfcp.msg_type == PFCP_MSG_TYPE__SX_HEARTBEAT_RESPONSE:
+						nb_responses += 1
+					cnt += 1
+		cap.close()
+	except Exception as e:
+		print('Could not open SPGWC PCAP file')
+	if nb_requests > 0:
+		res['spgwc_hrt_request'] = True
+		res['spgwc_hrt_nb_req'] = str(nb_requests)
+	if nb_responses > 0:
+		res['spgwu_hrt_answer'] = True
+		res['spgwu_hrt_nb_res'] = str(nb_responses)
 	return res

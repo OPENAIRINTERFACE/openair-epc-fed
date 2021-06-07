@@ -272,6 +272,7 @@ class HtmlReport():
 		details += '       <th>Test Status</th>\n'
 		details += '       <th>Test Details</th>\n'
 		details += '     </tr>\n'
+		# Checking the MME packets
 		pcap_list = [f for f in os.listdir('archives') if os.path.isfile(os.path.join('archives', f)) and f.startswith('mme') and f.endswith('.pcap')]
 		for pcap_fil in pcap_list:
 			# There should be only one (1) MME PCAP file and if present, then we can start resuming test OK
@@ -280,8 +281,8 @@ class HtmlReport():
 			res = check_if_mme_connects_to_hss('archives/' + pcap_fil)
 			details += self.addSectionRow('MME HSS S6A Connection')
 			details += self.addDetailsRow('MME S6A Request', res['mme_request'], 'Realm = ' + res['origin_realm'])
-			details += self.addDetailsRow('HSS S6A Response', res['mme_request'], 'Host = ' + res['origin_host'])
-			if not res['mme_request'] or not res['mme_request']:
+			details += self.addDetailsRow('HSS S6A Response', res['hss_answer'], 'Host = ' + res['origin_host'])
+			if not res['mme_request'] or not res['hss_answer']:
 				status = False
 			# eNB to MME S1 Connection
 			res = check_if_enb_connects_to_mme('archives/' + pcap_fil)
@@ -330,6 +331,22 @@ class HtmlReport():
 			rowDetails = 'SPGW-U F-TEID = ' + res['s11_mod_bear_ufteid']
 			details += self.addDetailsRow('S11 Modify Bearer Response', res['s11_modify_bearer_res'], rowDetails)
 			if not res['s11_modify_bearer_req'] or not res['s11_modify_bearer_res']:
+				status = False
+		# Checking the CUPS packets
+		pcap_list = [f for f in os.listdir('archives') if os.path.isfile(os.path.join('archives', f)) and f.startswith('spgwc') and f.endswith('.pcap')]
+		for pcap_fil in pcap_list:
+			# SPGWU to SPGWC Connection
+			res = check_if_spgwu_connects_to_spgwc('archives/' + pcap_fil)
+			details += self.addSectionRow('CUPS Association')
+			details += self.addDetailsRow('SPGWU SX Assoc Request', res['spgwu_request'], 'FDQN = ' + res['spgwu_fdqn'])
+			details += self.addDetailsRow('SPGWC SX Assoc Response', res['spgwc_answer'], 'IP = ' + res['spgwc_ipv4'])
+			if not res['spgwu_request'] or not res['spgwc_answer']:
+				status = False
+			# SPGWC to SPGWU HeartBeat
+			res = check_cups_heartbeat('archives/' + pcap_fil)
+			details += self.addDetailsRow('SPGWC SX HRT Request', res['spgwc_hrt_request'], 'NB REQ = ' + res['spgwc_hrt_nb_req'])
+			details += self.addDetailsRow('SPGWU SX HRT Response', res['spgwu_hrt_answer'], 'NB RES = ' + res['spgwu_hrt_nb_res'])
+			if not res['spgwc_hrt_request'] or not res['spgwu_hrt_answer']:
 				status = False
 		details += '  </table>\n'
 		details += '  </div>\n'
