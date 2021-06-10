@@ -12,7 +12,7 @@
   </tr>
 </table>
 
-# 1. Install the proper version of Docker #
+# 1. Install the proper version of `docker` #
 
 At time of writing (2020 / 04 / 16):
 
@@ -46,6 +46,16 @@ $ sudo yum install docker-ce docker-ce-cli containerd.io
 $ sudo systemctl start docker
 $ docker info
 ```
+
+Please refer to the official [docker engine installation guide page](https://docs.docker.com/engine/install/).
+
+You will get more details than here.
+
+## 1.1. Install a recent version of `docker-compose` ##
+
+Official [installation guide](https://docs.docker.com/compose/install/).
+
+We recommend a version newer than `1.27`.
 
 # 2. Create an account on Docker Hub #
 

@@ -14,11 +14,7 @@
 
 # 1.  Retrieve the proper code version #
 
-At the time of writing (2020 / 10 / 27), if you want to use the OpenAir-CN for a Dual Connectivity use case, you need to use proper branches:
-
-**UPDATE: 2021/02/08 --> this tutorial is still valid for the following tags**
-
-**For later tags, please refer to the MAGMA-based tutorial.**
+**CAUTION: 2021/02/08 --> the following tags were used.**
 
 **cNF Name** | **Branch Name** | **Tags**   | **Commit at time of writing**              | Ubuntu18 | CentOS7 | CentOS8
 ------------ | --------------- | ---------- | ------------------------------------------ | -------- | ------- | -------
@@ -32,7 +28,19 @@ SPGW-U-TINY  | `develop`       | `2021.w10` | `acd293e616f879f4dacead152c59384d1
 ```bash
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
-$ git checkout 2021.w18
+
+# You can specify a tag on the parent GIT repository such as `2021.w22`
+$ git checkout 2021.w22
+# Or you can sync to the latest version
+$ git checkout master
+
+# Then you need to resync the sub-modules (ie HSS, SPGW-CUPS, MME).
+# You can specify:
+#   ---  a valid tag (such as seen)
+#   ---  a newer tag
+#   ---  a branch to get the latest (`develop` being the latest stable)
+#        Usually the better option is to specify `develop`
+
 $ ./scripts/syncComponentsLegacy.sh --hss-branch 2021.w10 --mme-branch 2020.w47 \
                               --spgwc-branch 2021.w10 --spgwu-tiny-branch 2021.w10
 ---------------------------------------------------------
@@ -41,8 +49,19 @@ OAI-MME    component branch : 2020.w47
 OAI-SPGW-C component branch : 2021.w10
 OAI-SPGW-U component branch : 2021.w10
 ---------------------------------------------------------
+
+# Or to not specify anything
+$ ./scripts/syncComponentsLegacy.sh
+---------------------------------------------------------
+OAI-HSS    component branch : develop
+OAI-MME    component branch : develop
+OAI-SPGW-C component branch : develop
+OAI-SPGW-U component branch : develop
+---------------------------------------------------------
 ....
 ```
+
+In general, the `docker-compose` files (even in the tutorials) are up-to-date w/ `develop` latest commits in each sub-module.
 
 **CAUTION: At the time of writing (2020 / 10 / 26), only HSS and MME have a full CentOS-7 support.**
 

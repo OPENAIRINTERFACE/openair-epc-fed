@@ -33,6 +33,16 @@ $ sudo usermod -a -G docker myusername
 
 **CAUTION: At time of writing (2021 / 02 / 01), we only support Ubuntu18.04 deployment.**
 
+Please refer to the official [docker engine installation guide page](https://docs.docker.com/engine/install/).
+
+You will get more details than here.
+
+## 1.1. Install a recent version of `docker-compose` ##
+
+Official [installation guide](https://docs.docker.com/compose/install/).
+
+We recommend a version newer than `1.27`.
+
 # 2. Create an account on Docker Hub #
 
 Go to [https://hub.docker.com/](https://hub.docker.com/) website and create an account.

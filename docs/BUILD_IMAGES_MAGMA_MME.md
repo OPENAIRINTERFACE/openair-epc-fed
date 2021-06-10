@@ -37,7 +37,19 @@ SPGW-U-TINY  | `develop`       | `2021.w10` | `acd293e616f879f4dacead152c59384d1
 ```bash
 $ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
-$ git checkout 2021.w18
+
+# You can specify a tag on the parent GIT repository such as `2021.w22`
+$ git checkout 2021.w22
+# Or you can sync to the latest version
+$ git checkout master
+
+# Then you need to resync the sub-modules (ie HSS, SPGW-CUPS).
+# You can specify:
+#   ---  a valid tag (such as seen)
+#   ---  a newer tag
+#   ---  a branch to get the latest (`develop` being the latest stable)
+#        Usually the better option is to specify `develop`
+
 $ ./scripts/syncComponents.sh --hss-branch 2021.w10 --spgwc-branch 2021.w10 --spgwu-tiny-branch 2021.w10
 ---------------------------------------------------------
 OAI-HSS    component branch : 2021.w10
@@ -45,7 +57,18 @@ OAI-SPGW-C component branch : 2021.w10
 OAI-SPGW-U component branch : 2021.w10
 ---------------------------------------------------------
 ....
+
+# Or to not specify anything
+$ ./scripts/syncComponentsLegacy.sh
+---------------------------------------------------------
+OAI-HSS    component branch : develop
+OAI-SPGW-C component branch : develop
+OAI-SPGW-U component branch : develop
+---------------------------------------------------------
+....
 ```
+
+In general, the `docker-compose` files (even in the tutorials) are up-to-date w/ `develop` latest commits in each sub-module.
 
 # 2. Generic Parameters #
 
