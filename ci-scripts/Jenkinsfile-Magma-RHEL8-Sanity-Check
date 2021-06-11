@@ -1,0 +1,287 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.openairinterface.org/?page_id=698
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+// Location of the CN executor node
+def cn_ci_host = params.Host_CN_CI_Server
+
+// for lock
+def cn_ci_resource = params.DockerContainers
+
+// Default tags / branches  --> could be passed on by upstream job or by PR content
+def hssTag = 'develop'
+def hssBranch = 'develop'
+def magmaMmeTag = 'master'
+// No branch for MAGMA
+def spgwcTag = 'develop'
+def spgwcBranch = 'develop'
+def spgwuTag = 'develop'
+def spgwuBranch = 'develop'
+
+// RAN Tags to use
+def oaiEnbTag = 'develop-2021-w20-gen'
+def oaiLteUeTag = 'develop-2021-w20-gen'
+
+// Flags
+def scmEvent = false
+def upstreamEvent = false
+def retrievedLogs = false
+
+//-------------------------------------------------------------------------------
+// Pipeline start
+pipeline {
+  agent {
+    label cn_ci_host
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    lock(cn_ci_resource)
+  }
+  stages {
+    stage ('Verify Parameters') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          // Clean workspace and prepare artifacts location
+          sh "git clean -x -d -f > /dev/null 2>&1"
+          sh "mkdir -p archives"
+
+          // Find out the cause of the trigger
+          for (cause in currentBuild.getBuildCauses()) {
+            if (cause.toString() ==~ /.*GitHubPushCause.*/) {
+              scmEvent = true
+            } else if (cause.toString() ==~ /.*GhprbCause.*/) {
+              scmEvent = true
+            } else if (cause.toString() ==~ /.*UpstreamCause.*/) {
+              upstreamEvent = true
+            }
+          }
+
+          if (upstreamEvent) {
+            if (params.HSS_TAG != null) {
+              hssTag = params.HSS_TAG
+              echo "Upstream Job passed HSS_TAG to use: ${hssTag}"
+            }
+            if (params.HSS_BRANCH != null) {
+              hssBranch = params.HSS_BRANCH
+              echo "Upstream Job passed HSS_BRANCH to use: ${hssBranch}"
+            }
+            if (params.MAGMA_MME_TAG != null) {
+              magmaMmeTag = params.MAGMA_MME_TAG
+              echo "Upstream Job passed MAGMA_MME_TAG to use: ${magmaMmeTag}"
+            }
+            if (params.SPGWC_TAG != null) {
+              spgwcTag = params.SPGWC_TAG
+              echo "Upstream Job passed SPGWC_TAG to use: ${spgwcTag}"
+            }
+            if (params.SPGWC_BRANCH != null) {
+              spgwcBranch = params.SPGWC_BRANCH
+              echo "Upstream Job passed SPGWC_BRANCH to use: ${spgwcBranch}"
+            }
+            if (params.SPGWU_TAG != null) {
+              spgwuTag = params.SPGWU_TAG
+              echo "Upstream Job passed SPGWU_TAG to use: ${spgwuTag}"
+            }
+            if (params.SPGWU_BRANCH != null) {
+              spgwuBranch = params.SPGWU_BRANCH
+              echo "Upstream Job passed SPGWU_BRANCH to use: ${spgwuBranch}"
+            }
+          }
+          // Here we verify if all images tags are available.
+          try {
+            sh 'echo "MAGMA_MME_TAG: magma-mme:' + magmaMmeTag +'" > archives/magma_mme_image_info.log'
+            sh 'sudo podman image inspect --format=\'Size = {{.Size}} bytes\' magma-mme:' + magmaMmeTag + ' >> archives/magma_mme_image_info.log'
+            sh 'sudo podman image inspect --format=\'Date = {{.Created}}\' magma-mme:' + magmaMmeTag + ' >> archives/magma_mme_image_info.log'
+          } catch (Exception e) {
+            error "Magma MME Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_HSS_TAG: oai-hss:' + hssTag +'" > archives/oai_hss_image_info.log'
+            sh 'sudo podman image inspect --format=\'Size = {{.Size}} bytes\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+            sh 'sudo podman image inspect --format=\'Date = {{.Created}}\' oai-hss:' + hssTag + ' >> archives/oai_hss_image_info.log'
+          } catch (Exception e) {
+            error "OAI HSS Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_SPGWC_TAG: oai-spgwc:' + spgwcTag +'" > archives/oai_spgwc_image_info.log'
+            sh 'sudo podman image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+            sh 'sudo podman image inspect --format=\'Date = {{.Created}}\' oai-spgwc:' + spgwcTag + ' >> archives/oai_spgwc_image_info.log'
+          } catch (Exception e) {
+            error "OAI SPGW-C Image tag to test does not exist!"
+          }
+          try {
+            sh 'echo "OAI_SPGWU_TAG: oai-spgwu-tiny:' + spgwuTag +'" > archives/oai_spgwu_image_info.log'
+            sh 'sudo podman image inspect --format=\'Size = {{.Size}} bytes\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+            sh 'sudo podman image inspect --format=\'Date = {{.Created}}\' oai-spgwu-tiny:' + spgwuTag + ' >> archives/oai_spgwu_image_info.log'
+          } catch (Exception e) {
+            error "OAI SPGW-U-Tiny Image tag to test does not exist!"
+          }
+
+          // Prepare workspace
+          sh './scripts/syncComponents.sh --hss-branch ' + hssBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
+        }
+      }
+    }
+    stage ('Deploy EPC on RHEL8 host') {
+      steps {
+        script {
+          // Currently docker-compose does not work with podman3 the way we want
+          // Re-using a python based approach
+          // First making sure remanent from previous run
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers > /dev/null 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks > /dev/null 2>&1'
+          // Create networks
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=CreateNetworks 2>&1'
+          // Deploy all CN containers
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployCassandra 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployHSS --tag=' + hssTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRedis 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployMME --tag=' + magmaMmeTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWC --tag=' + spgwcTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWU --tag=' + spgwuTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployTrfGen --tag=production 2>&1'
+        }
+      }
+      post {
+        always {
+          script {
+            // Check status on cassandra.
+            try {
+              sh 'sudo podman exec -i cicd-cassandra /bin/bash -c "nodetool status" > archives/cassandra_status.log 2>&1'
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-cassandra >> archives/cassandra_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/cassandra_status.log'
+            }
+            // Check status on redis.
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-redis > archives/redis_status.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/redis_status.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-oai-hss > archives/hss_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/hss_config.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-oai-mme > archives/mme_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/mme_config.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-oai-spgwc > archives/spgwc_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/spgwc_config.log'
+            }
+            try {
+              sh 'sudo podman inspect --format=\'STATUS: {{.State.Healthcheck.Status}}\' cicd-oai-spgwu-tiny > archives/spgwu_config.log'
+            } catch (Exception e) {
+              sh 'echo "STATUS: KO" >> archives/spgwu_config.log'
+            }
+          }
+        }
+        success {
+          script {
+            sh 'echo "DEPLOYMENT: OK" > archives/deployment_status.log'
+          }
+        }
+        unsuccessful {
+          script {
+            sh 'echo "DEPLOYMENT: KO" > archives/deployment_status.log'
+            sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+            retrievedLogs = true
+          }
+        }
+      }
+    }
+    stage ('Deploy OAI eNB/UE RF Sim') {
+      steps {
+        script {
+          // Deploy all RAN/UE containers
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimENB --tag=' + oaiEnbTag + ' 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimUE --tag=' + oaiLteUeTag + ' 2>&1'
+          sh 'sleep 120'
+          // Retrieve all logs
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+          retrievedLogs = true
+          // Generate HTML report by parsing PCAP-captured packets is the final say on pass/fail criteria
+          // Something wrong occurs before this line, then it will be generate in the final post section
+          sh 'python3 ./ci-scripts/rhel8SanityCheckReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+        }
+      }
+      post {
+        always {
+          script {
+            if (!retrievedLogs) {
+              sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
+            }
+          }
+        }
+        success {
+          script {
+            sh 'echo "OAI RAN STACK TEST: OK" > archives/oai_ran_stack_test.log'
+          }
+        }
+        unsuccessful {
+          script {
+            sh 'echo "OAI RAN STACK TEST: KO" > archives/oai_ran_stack_test.log'
+          }
+        }
+      }
+    }
+    stage ('Undeploy EPC') {
+      steps {
+        script {
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers 2>&1'
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks 2>&1'
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers > /dev/null 2>&1 || true'
+        sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks > /dev/null 2>&1 || true'
+        // Zipping all archived log files
+        sh "zip -r -qq fed_podman_logs.zip archives"
+        if (fileExists('fed_podman_logs.zip')) {
+          archiveArtifacts artifacts: 'fed_podman_logs.zip'
+        }
+        // If report not present, certainly something wrong occured.
+        // Generate it anyway without caring out about result
+        if (!fileExists('test_results_oai_epc_rhel8.html')) {
+          sh 'python3 ./ci-scripts/rhel8SanityCheckReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' || true'
+        }
+        if (fileExists('test_results_oai_epc_rhel8.html')) {
+          sh 'mv test_results_oai_epc_rhel8.html test_results_magma_epc_rhel8.html'
+          archiveArtifacts artifacts: 'test_results_magma_epc_rhel8.html'
+        }
+      }
+    }
+  }
+}

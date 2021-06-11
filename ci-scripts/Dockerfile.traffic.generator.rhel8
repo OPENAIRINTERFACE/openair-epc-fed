@@ -1,0 +1,93 @@
+#/*
+# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The OpenAirInterface Software Alliance licenses this file to You under
+# * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# * except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *      http://www.openairinterface.org/?page_id=698
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *-------------------------------------------------------------------------------
+# * For more information about the OpenAirInterface (OAI) Software Alliance:
+# *      contact@openairinterface.org
+# */
+#---------------------------------------------------------------------
+#
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM registry.access.redhat.com/ubi8/ubi:latest as trf-gen-builder
+
+COPY tmp/ca/redhat-uep.pem /etc/rhsm/ca
+COPY tmp/entitlement/*.pem /etc/pki/entitlement
+
+RUN rm /etc/rhsm-host && \
+    # Initialize /etc/yum.repos.d/redhat.repo
+    # See https://access.redhat.com/solutions/1443553
+    yum repolist --disablerepo=* && \
+    subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms && \
+    yum update -y && \
+    yum -y install --enablerepo="codeready-builder-for-rhel-8-x86_64-rpms" \
+       # diff, cmp and file are not in the ubi???
+       gcc gcc-c++ \
+       git \
+       make \
+       psmisc \
+       traceroute \
+       wget && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
+
+WORKDIR /
+RUN wget --tries=3 https://iperf.fr/download/source/iperf-2.0.5-source.tar.gz && \
+    gzip -cd iperf-2.0.5-source.tar.gz | tar -xvf -
+
+WORKDIR /iperf-2.0.5
+RUN sed -i -e "s@#include <math@//#include <math@" include/headers.h && \
+    ./configure && \
+    make
+
+WORKDIR /
+RUN git clone https://git.code.sf.net/p/iperf2/code /iperf-2.0.10 && \
+    cd /iperf-2.0.10 && \
+    git checkout -f ce9d976ae6534f0cc93c4a4050f0a395ac8d9887 && \
+    ./configure && \
+    make
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM registry.access.redhat.com/ubi8/ubi:latest as trf-gen
+
+ENV TZ=Europe/Paris
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN yum update -y && \
+    yum -y install --enablerepo="ubi-8-codeready-builder" \
+       iperf3 \
+       iproute \
+       iputils \
+       tcpdump \
+       psmisc \
+       traceroute \
+       net-tools && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    yum clean all -y && \
+    rm -rf /var/cache/yum
+
+WORKDIR /iperf-2.0.5/bin
+COPY --from=trf-gen-builder /iperf-2.0.5/src/iperf .
+
+WORKDIR /iperf-2.0.10/bin
+COPY --from=trf-gen-builder /iperf-2.0.10/src/iperf .
+
+CMD ["sleep", "infinity"]
