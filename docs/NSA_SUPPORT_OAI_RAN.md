@@ -217,7 +217,7 @@ No particular changes.
 
 We used `2020.w51_2` at the time of writing, but any newer tag would be better. Since this part is quickly evolving with bug fixes and feature enhancements.
 
-**UPDATE: 2021/06/17**
+### UPDATE: 2021/06/17 ###
 
 I made an update on all tutorials and I used the latest possible commits/tags on every component:
 
@@ -228,6 +228,10 @@ Component | Branch | Commit | Date
 `SPGW-C` | `develop` | `b523f660ee0bc5dc06e73aba3d39c4ede65b99ab` | 2021/05/31
 `SPGW-U-TINY` | `develop` | `8b39dcad77fa96edcff135a318ea3a59ed33923e` | 2021/06/01
 `eNB/gNB` | `develop` | `2021.w23` | 2021/06/14
+
+**Last point:** Compared to the recorded video (link below), on 2021/06/17, I used another COTS-UE:
+
+* an `USB-powered` modem (not a smartphone), **Quectel RM500Q-GL** module.
 
 # 3. Link to video #
 
