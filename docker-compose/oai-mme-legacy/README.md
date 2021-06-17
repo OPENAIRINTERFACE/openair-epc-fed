@@ -85,6 +85,14 @@ Obviously you want an EPC that runs for your environment. It means:
 *  A different PLMN
 *  Your network configuration is certainly different
 
+**Try to modify as little as possible the number of environment variables values in the docker-compose file.**
+
+The variables I describe in the next few sections should be the ones you shall focus on!
+
+* They are formatted in this markdown page as **<code>ENV_VARIABLE</code>**
+
+If you don't understand a value, it is better to **NOT** touch it!
+
 ## UE simcard and other UE configurations
 
 The final purpose of deploying an EPC is to connect a 4G UE (smartphone or dongle) to internet through an eNB.
@@ -102,12 +110,17 @@ Here you can be creative. It's a string. Our only requirement --> It **SHALL** h
 
 Now you need to provision the user(s) into the Cassandra Database, hence some of the **HSS** parameters:
 
-* **LTE_K** SHALL match **LTE_KEY** you used in burning the simcard
-* **OP_KEY** **is not** the **OPC_KEY** but it can be calculated from it and **LTE_KEY**.
-* **APN1** SHALL match the one you created on your smartphone.
-* **FIRST_IMSI** should match the one you chose
+* **<code>LTE_K</code>** SHALL match **LTE_KEY** you used in burning the simcard
+* **<code>OP_KEY</code>** **is not** the **OPC_KEY** but it can be calculated from it and **LTE_KEY**.
+* **<code>APN1</code>** SHALL match the one you created on your smartphone.
+* **<code>FIRST_IMSI</code>** should match the one you chose
 
-The **SPGW-C** parameter **DEFAULT_APN** shall match also the APN you created.
+The **SPGW-C**, since the introduction of FDQN support, has 2 variables:
+
+* **<code>APN_NI_1</code>**
+* **<code>DEFAULT_APN_NI_1</code>**
+
+that shall match also the APN you created.
 
 ## Your Public Land Mobile Network (PLMN)
 
@@ -115,9 +128,32 @@ I strongly recommend to only modify the **MCC**-type and **MNC**-type parameters
 
 You could touch the **TAC**-type ones but it's quite more difficult for a simple tutorial.
 
-In our example, we used **208** and **96**. 
+In our example, we used **208** and **96** with TACs **1**, **2**, **3** (**1** being primary TAC).
+
+**CAUTION** : for **MCC**, **MNC** values, I am using a `'` -- 2 or 3 digits -- `'` notation:
+
+- I do this especially if your **MNC** is something like **'02'**, 2 digits with 1st being '0'
+- This 1st `zero` digit **SHALL** present in any of the cNF configuration files!
 
 Note that the **MNC3**-type parameters are encoded over 3 characters. This is mandatory.
+You have to fill with `zeroes` if needed.
+
+For the **MME**:
+
+* **<code>MCC</code>**
+* **<code>MNC</code>**
+* **<code>TAC_0</code>**
+* **<code>MCC_SGW_0</code>**
+* **<code>MNC3_SGW_0</code>**
+* **<code>TAC_LB_SGW_0</code>**
+* **<code>TAC_HB_SGW_0</code>**
+
+For the **SPGWC-C** and **SPGW-U-TINY**:
+
+* **<code>MCC</code>**
+* **<code>MNC</code>**
+* **<code>MNC03</code>**
+* **<code>TAC</code>**
 
 **Last important point:** Your MME PLMN **SHALL** match the one in your eNB configuration!
 
@@ -132,7 +168,11 @@ For example, if you are using OAI eNB configuration file:
 
 ## Your network configuration
 
+### DNS Settings ###
+
 Your EPC Docker host has its own gateway --> you need to provide it as "Local DNS server".
+
+**Otherwise** you won't have Internet access on your UE when it is connected to the Core Network!
 
 On your EPC docker host, type:
 
@@ -144,17 +184,46 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 ....
 ```
 
-Use the 2nd field value as **DEFAULT_DNS_IPV4_ADDRESS** field.
+In the **SPGW-C** section of the docker-compose file.
 
-In our example, as **DEFAULT_DNS_SEC_IPV4_ADDRESS** we are using Google's 2nd one. You can pick anything else.
+Use the 2nd field value as **<code>DEFAULT_DNS_IPV4_ADDRESS</code>** field.
 
-Last point: the UE IP address allocation pool. 
+In our example, as **<code>DEFAULT_DNS_SEC_IPV4_ADDRESS</code>** we are using Google's 2nd one. You can pick anything else.
+
+You can also ask your IT team!
+
+You can tweak with the following 2 variables (but they are already at best values):
+
+* **<code>PUSH_PROTOCOL_OPTION</code>**
+* **<code>NETWORK_UE_NAT_OPTION</code>**
+
+### the UE IP address allocation pool ###
+
+Last point: the UE IP address allocation pool is used to assign an IP address to the UE when it gets connected.
 
 In our example, I chose "12.1.1.2 - 12.1.1.254" range.
 
 Note that it is also defined in **CICDR** format for SPGW-U "12.1.1.0/24"
 
 If you have to change, please respect both formats.
+
+**SPGW-C** section of docker-compose file:
+
+* **<code>UE_IP_ADDRESS_POOL_1</code>**
+
+**SPGW-U-TINY** section of docker-compose file:
+
+* **<code>NETWORK_UE_IP</code>**
+
+# Time-Zone Settings #
+
+You can specify the timezone at deployment time in each container.
+
+Just modify **<code>TZ</code>** in each container section!
+
+Note that by default at build I've set up `Europe/Paris`.
+
+Proper values can be found in your Linux system at `/usr/share/zoneinfo/`.
 
 # Connecting an eNB
 

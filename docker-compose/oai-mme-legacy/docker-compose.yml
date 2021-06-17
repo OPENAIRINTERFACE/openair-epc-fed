@@ -128,10 +128,7 @@ services:
         environment:
             TZ: Europe/Paris
             SGW_INTERFACE_NAME_FOR_S11: eth0
-            SGW_IP_FOR_S5_S8_CP: 127.0.0.11/8
-            PGW_IP_FOR_S5_S8_CP: 127.0.0.12/8
             PGW_INTERFACE_NAME_FOR_SX: eth0
-            DEFAULT_APN: oai.ipv4
             DEFAULT_DNS_IPV4_ADDRESS: 192.168.18.129
             DEFAULT_DNS_SEC_IPV4_ADDRESS: 8.8.4.4
             PUSH_PROTOCOL_OPTION: 'true'
@@ -140,9 +137,9 @@ services:
             DEFAULT_APN_NI_1: oai.ipv4
             UE_IP_ADDRESS_POOL_1: '12.1.1.2 - 12.1.1.254'
             UE_IP_ADDRESS_POOL_2: '12.0.0.2 - 12.0.0.254'
-            MCC: 208
-            MNC: 96
-            MNC03: '001'
+            MCC: '208'
+            MNC: '96'
+            MNC03: '096'
             TAC: 1
             GW_ID: 1
             REALM: openairinterface.org
@@ -170,9 +167,9 @@ services:
             SPGWC0_IP_ADDRESS: 192.168.61.196
             NETWORK_UE_IP: '12.1.1.0/24'
             NETWORK_UE_NAT_OPTION: 'yes'
-            MCC: 208
-            MNC: 96
-            MNC03: '001'
+            MCC: '208'
+            MNC: '96'
+            MNC03: '096'
             TAC: 1
             GW_ID: 1
             REALM: openairinterface.org

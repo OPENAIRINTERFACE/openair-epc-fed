@@ -217,6 +217,18 @@ No particular changes.
 
 We used `2020.w51_2` at the time of writing, but any newer tag would be better. Since this part is quickly evolving with bug fixes and feature enhancements.
 
+**UPDATE: 2021/06/17**
+
+I made an update on all tutorials and I used the latest possible commits/tags on every component:
+
+Component | Branch | Commit | Date
+--- | --- | --- | ---
+`MAGMA` | `master` | `01135cd333c51431b3fcece8ba09b2b62d6711a4` | 2021/06/13
+`HSS`   | `develop` | `0e0d12e140294c7fd14fd187887e434c2273a012` | 2021/05/21
+`SPGW-C` | `develop` | `b523f660ee0bc5dc06e73aba3d39c4ede65b99ab` | 2021/05/31
+`SPGW-U-TINY` | `develop` | `8b39dcad77fa96edcff135a318ea3a59ed33923e` | 2021/06/01
+`eNB/gNB` | `develop` | `2021.w23` | 2021/06/14
+
 # 3. Link to video #
 
 A video is available on [Youtube](https://youtu.be/bnhguk6CfOk).

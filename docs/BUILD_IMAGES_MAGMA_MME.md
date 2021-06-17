@@ -155,15 +155,15 @@ During the UE attachment, we have seen that when UE receives the `EMM-Informatio
 **So at the time of writing (2021 / 02 / 01), we are disabling the sending of EMM-INFO packet.**
 
 ```bash
-git diff lte/gateway/c/oai/tasks/nas/emm/Attach.c
-diff --git a/lte/gateway/c/oai/tasks/nas/emm/Attach.c b/lte/gateway/c/oai/tasks/nas/emm/Attach.c
-index 53d1906c9..4bbafd9dc 100644
---- a/lte/gateway/c/oai/tasks/nas/emm/Attach.c
-+++ b/lte/gateway/c/oai/tasks/nas/emm/Attach.c
-@@ -798,7 +798,7 @@ int emm_proc_attach_complete(
-        * */
-       OAILOG_INFO(
-           LOG_NAS_EMM, " Sending EMM INFORMATION for ue_id = (%u)\n", ue_id);
+$ git diff lte/gateway/c/core/oai/tasks/nas/emm/Attach.c
+diff --git a/lte/gateway/c/core/oai/tasks/nas/emm/Attach.c b/lte/gateway/c/core/oai/tasks/nas/emm/Attach.c
+index 34f353a88..b354b18b7 100644
+--- a/lte/gateway/c/core/oai/tasks/nas/emm/Attach.c
++++ b/lte/gateway/c/core/oai/tasks/nas/emm/Attach.c
+@@ -840,7 +840,7 @@ int emm_proc_attach_complete(
+           LOG_NAS_EMM,
+           " Sending EMM INFORMATION for ue_id = " MME_UE_S1AP_ID_FMT "\n",
+           ue_id);
 -      emm_proc_emm_informtion(ue_mm_context);
 +      //emm_proc_emm_informtion(ue_mm_context);
        increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
