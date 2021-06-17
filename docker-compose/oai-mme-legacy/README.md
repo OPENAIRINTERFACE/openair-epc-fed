@@ -134,7 +134,7 @@ In our example, we used **208** and **96** with TACs **1**, **2**, **3** (**1** 
 **CAUTION** : for **MCC**, **MNC** values, I am using a `'` -- 2 or 3 digits -- `'` notation:
 
 - I do this especially if your **MNC** is something like **'02'**, 2 digits with 1st being '0'
-- This 1st `zero` digit **SHALL** present in any of the cNF configuration files!
+- This 1st `zero` digit **SHALL** present in all of the cNF configuration files!
 
 Note that the **MNC3**-type parameters are encoded over 3 characters. This is mandatory.
 You have to fill with `zeroes` if needed.
