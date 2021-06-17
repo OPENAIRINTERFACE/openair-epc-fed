@@ -139,6 +139,7 @@ Now you need to provision the user(s) into the Cassandra Database, hence some of
 
 * **<code>LTE_K</code>** SHALL match **LTE_KEY** you used in burning the simcard
 * **<code>OP_KEY</code>** **is not** the **OPC_KEY** but it can be calculated from it and **LTE_KEY**.
+  * A example of a generator can be found at [Ki/OPc Generator](https://github.com/PodgroupConnectivity/kiopcgenerator)
 * **<code>APN1</code>** SHALL match the one you created on your smartphone.
 * **<code>FIRST_IMSI</code>** should match the one you chose
 
