@@ -14,6 +14,12 @@
 
 # Initialize the Cassandra DB #
 
+Starting and initializing a data-base takes a bit of time.
+
+In `docker-compose 3.x`, there are no more support for conditional healthy dependency when deploying.
+
+This step is now **manual**.
+
 ```bash
 $ cd docker-compose/oai-mme-legacy
 $ docker-compose up -d db_init
@@ -35,7 +41,9 @@ prod-db-init
 
 Note: we are removing the `prod-db-init` container because it is not needed anymore.
 
-You can keep but it is dead.
+You can keep the container but it is dead.
+
+To go to the next step, you **SHALL** have the "OK" message in the `prod-db-init` container logs.
 
 # Deploy the rest of EPC #
 
