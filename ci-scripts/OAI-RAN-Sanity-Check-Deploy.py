@@ -27,18 +27,18 @@ import subprocess
 import time
 
 
-CICD_PUBLIC_NETWORK_RANGE='192.168.61.192/26'
+CICD_PUBLIC_NETWORK_RANGE='192.168.61.64/26'
 
-CICD_CASS_IP_ADDR='192.168.61.194'
-CICD_HSS_PUBLIC_ADDR='192.168.61.195'
-CICD_MME_PUBLIC_ADDR='192.168.61.196'
-CICD_REDIS_PUBLIC_ADDR='192.168.61.197'
-CICD_SPGWC_PUBLIC_ADDR='192.168.61.198'
-CICD_SPGWU_PUBLIC_ADDR='192.168.61.199'
-CICD_TRFGEN_PUBLIC_ADDR='192.168.61.200'
+CICD_CASS_IP_ADDR='192.168.61.66'
+CICD_HSS_PUBLIC_ADDR='192.168.61.67'
+CICD_MME_PUBLIC_ADDR='192.168.61.68'
+CICD_REDIS_PUBLIC_ADDR='192.168.61.69'
+CICD_SPGWC_PUBLIC_ADDR='192.168.61.70'
+CICD_SPGWU_PUBLIC_ADDR='192.168.61.71'
+CICD_TRFGEN_PUBLIC_ADDR='192.168.61.72'
 
-CICD_ENB_RF_SIM_PUBLIC_ADDR='192.168.61.210'
-CICD_UE0_RF_SIM_PUBLIC_ADDR='192.168.61.220'
+CICD_ENB_RF_SIM_PUBLIC_ADDR='192.168.61.80'
+CICD_UE0_RF_SIM_PUBLIC_ADDR='192.168.61.90'
 
 class deployWithOAIran:
 
@@ -168,7 +168,7 @@ class deployWithOAIran:
         status = False
         while (count < 10) and (runCount < 5):
             res = subprocess.check_output(self.cli + ' top cicd-redis', shell=True, universal_newlines=True)
-            if re.search('redis-server 192.168.61.197:6380', str(res)):
+            if re.search('redis-server 192.168.61.69:6380', str(res)):
                 runCount += 1
                 if runCount == 5:
                     status = True
