@@ -177,10 +177,8 @@ pipeline {
                   }
                 }
               }
-              sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
-            } else {
-              sh './scripts/syncComponentsLegacy.sh'
             }
+            sh './scripts/syncComponentsLegacy.sh --hss-branch ' + hssBranch + ' --mme-branch ' + mmeBranch + ' --spgwc-branch ' + spgwcBranch + ' --spgwu-tiny-branch ' + spgwuBranch
             sh "mkdir -p archives DS-TEST-RESULTS"
           }
           if (upstreamEvent) {

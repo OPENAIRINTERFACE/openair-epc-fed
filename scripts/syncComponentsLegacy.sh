@@ -53,10 +53,10 @@ function usage {
     echo ""
 }
 
-HSS_BRANCH='develop'
+HSS_BRANCH='master'
 MME_BRANCH='develop'
-SPGWC_BRANCH='develop'
-SPGWU_BRANCH='develop'
+SPGWC_BRANCH='master'
+SPGWU_BRANCH='master'
 
 doDefault=1
 
@@ -121,12 +121,21 @@ git submodule update  > /dev/null 2>&1
 
 if [ $doDefault -eq 1 ]
 then
-    git submodule foreach 'git fetch --prune && git checkout develop && git pull origin develop'  > /dev/null 2>&1
+    git submodule foreach 'git fetch --prune && \
+        if [ "$name" = "component/oai-mme" ]; then \
+            git branch -D develop && git checkout -b develop origin/develop; \
+        else \
+            git branch -D master && git checkout -b master origin/master; \
+        fi' > /dev/null 2>&1
 else
     pushd component/oai-hss
     git fetch --prune > /dev/null 2>&1
-    git checkout $HSS_BRANCH > /dev/null 2>&1
-    git pull origin $HSS_BRANCH > /dev/null 2>&1
+    git branch -D $HSS_BRANCH > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        git checkout $HSS_BRANCH > /dev/null 2>&1
+    else
+        git checkout -b $HSS_BRANCH origin/$HSS_BRANCH > /dev/null 2>&1
+    fi 
     popd
     pushd component/oai-mme
     git fetch --prune > /dev/null 2>&1
@@ -135,12 +144,20 @@ else
     popd
     pushd component/oai-spgwc
     git fetch --prune > /dev/null 2>&1
-    git checkout $SPGWC_BRANCH > /dev/null 2>&1
-    git pull origin $SPGWC_BRANCH > /dev/null 2>&1
+    git branch -D $SPGWC_BRANCH > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        git checkout $SPGWC_BRANCH > /dev/null 2>&1
+    else
+        git checkout -b $SPGWC_BRANCH origin/$SPGWC_BRANCH > /dev/null 2>&1
+    fi
     popd
     pushd component/oai-spgwu-tiny
     git fetch --prune > /dev/null 2>&1
-    git checkout $SPGWU_BRANCH > /dev/null 2>&1
-    git pull origin $SPGWU_BRANCH > /dev/null 2>&1
+    git branch -D $SPGWU_BRANCH > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        git checkout $SPGWU_BRANCH > /dev/null 2>&1
+    else
+        git checkout -b $SPGWU_BRANCH origin/$SPGWU_BRANCH > /dev/null 2>&1
+    fi
     popd
 fi

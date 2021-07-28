@@ -32,11 +32,14 @@ In these pages, we are describing how to build and deploy an LTE EPC using the *
    - The last valid tag on the MME is **2020.w47**.
    - Our developers are now contributing to the **MAGMA-MME**.
 
+**2021/07/28 Update: you have now the choice to either pull images or build your-self.**
 
 **Table of Contents**
 
 1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES.md)
-2.  [Building the Docker Images](./BUILD_IMAGES.md)
+2.  Getting the images
+    1.  [Retrieving the Container Images](./RETRIEVE_OFFICIAL_IMAGES.md)
+    2.  [Building the Container Images](./BUILD_IMAGES.md)
 3.  [Deploying using docker-compose](../docker-compose/oai-mme-legacy/README.md)
 4.  [Verify/Correct your network environment](./CONFIGURE_NETWORKS.md)
 5.  [Generating Traffic to a connected UE](./GENERATE_TRAFFIC.md)

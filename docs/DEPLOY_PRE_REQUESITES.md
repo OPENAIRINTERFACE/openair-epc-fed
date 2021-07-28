@@ -67,7 +67,7 @@ Go to [https://hub.docker.com/](https://hub.docker.com/) website and create an a
 * CentOS7 version: We need 3 base images: `centos:7`, `centos:8` and `cassandra:2.1`
 * CentOS8 version: We need 2 base images: `centos:8` and `cassandra:2.1`
 
-First log with your Docker Hub credentials.
+First log with your Docker Hub credentials. This is required if your organization has reached pulling limit as `anonymous`.
 
 ```bash
 $ docker login
@@ -161,5 +161,8 @@ $ docker network inspect bridge
 ....
 ```
 
-You are ready to [build the images](./BUILD_IMAGES.md).
+Here you have 2 choices:
+
+*  You can pull official images from Docker Hub like [this](./RETRIEVE_OFFICIAL_IMAGES.md).
+*  Or you are ready to [build your-self the network function images](./BUILD_IMAGES.md).
 

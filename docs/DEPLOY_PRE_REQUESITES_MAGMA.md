@@ -51,7 +51,7 @@ Go to [https://hub.docker.com/](https://hub.docker.com/) website and create an a
 
 * Ubuntu  version: We need 3 base images: `ubuntu:bionic`, `cassandra:2.1` and `redis:6.0.5`
 
-First log with your Docker Hub credentials.
+First log with your Docker Hub credentials. This is required if your organization has reached pulling limit as `anonymous`.
 
 ```bash
 $ docker login
@@ -131,5 +131,8 @@ $ docker network inspect bridge
 ....
 ```
 
-You are ready to [build the images (including MAGMA-MME)](./BUILD_IMAGES_MAGMA_MME.md).
+Here you have 2 choices:
+
+*  You can pull official images from Docker Hub like [this](./RETRIEVE_OFFICIAL_IMAGES_MAGMA.md).
+*  You are ready to [build yourself the images (including MAGMA-MME)](./BUILD_IMAGES_MAGMA_MME.md).
 

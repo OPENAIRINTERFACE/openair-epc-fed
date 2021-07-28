@@ -14,58 +14,90 @@
 
 # 1.  Retrieve the proper code version #
 
-**CAUTION: 2021/02/08 --> the following tags were used.**
+**CAUTION: PLEASE READ THIS SECTION VERY CAREFULLY!**
 
-**cNF Name** | **Branch Name** | **Tags**   | **Commit at time of writing**              | Ubuntu18 | CentOS7 | CentOS8
------------- | --------------- | ---------- | ------------------------------------------ | -------- | ------- | -------
-HSS          | `develop`       | `2021.w10` | `93dfcbca245ec97652c4d62ba3913a899d956d68` | X        | X       | X
-MME          | `develop`       | `2020.w47` | `82b11abbd83a346bae220517f09fe8e4233db76b` | X        | X       | X
-SPGW-C       | `develop`       | `2021.w10` | `b10256535e47ffb86c86a8581d9c50b1f380dcf5` | X        |         | X
-SPGW-U-TINY  | `develop`       | `2021.w10` | `acd293e616f879f4dacead152c59384d1e533167` | X        |         | X
+This repository only has tutorials and Continuous Integration scripts.
 
-**UPDATE: 2021/05/04 --> I have modified the name of the sync script --> `syncComponentsLegacy.sh`.**
+Each 4G Network Function source code is managed in its own repository.
+
+They are called as git sub-modules in the component folder.
+
+Before doing anything, you SHALL retrieve the code for each git sub-module.
+
+## 1.1. You are interested on a very stable version. ##
+
+We recommend to synchronize with the master branches on all git sub-modules.
+
+We also recommend that you synchronize this "tutorial" repository with a provided tag. By doing so, the `docker-compose` files will be aligned with feature sets of each NF.
+
+**At the time of writing (2021/07/28), the release tag is v1.1.2.**
+
+| CNF Name    | Branch Name | Tag        | Ubuntu 18.04 | RHEL8 (UBI8)    |
+| ----------- | ----------- | ---------- | ------------ | ----------------|
+| FED REPO    | N/A         | `v1.1.2`   |              |                 |
+| HSS         | `master`    | `v1.1.2`   | X            | X               |
+| MME         | `develop`   | `2020.w47` | X            | X               |
+| SPWG-C      | `master`    | `v1.1.2`   | X            | X               |
+| SPGW-U-TINY | `master`    | `v1.1.2`   | X            | X               |
 
 ```bash
-$ git clone https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
+# Clone directly on the latest release tag
+$ git clone --branch v1.1.2 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
+# If you forgot to clone directly to the latest release tag
+$ git checkout -f v1.1.2
 
-# You can specify a tag on the parent GIT repository such as `2021.w22`
-$ git checkout 2021.w22
-# Or you can sync to the latest version
-$ git checkout master
-
-# Then you need to resync the sub-modules (ie HSS, SPGW-CUPS, MME).
-# You can specify:
-#   ---  a valid tag (such as seen)
-#   ---  a newer tag
-#   ---  a branch to get the latest (`develop` being the latest stable)
-#        Usually the better option is to specify `develop`
-
-$ ./scripts/syncComponentsLegacy.sh --hss-branch 2021.w10 --mme-branch 2020.w47 \
-                              --spgwc-branch 2021.w10 --spgwu-tiny-branch 2021.w10
----------------------------------------------------------
-OAI-HSS    component branch : 2021.w10
-OAI-MME    component branch : 2020.w47
-OAI-SPGW-C component branch : 2021.w10
-OAI-SPGW-U component branch : 2021.w10
----------------------------------------------------------
-
-# Or to not specify anything
+# Synchronize all git submodules
 $ ./scripts/syncComponentsLegacy.sh
+---------------------------------------------------------
+OAI-HSS    component branch : master
+OAI-MME    component branch : develop
+OAI-SPGW-C component branch : master
+OAI-SPGW-U component branch : master
+---------------------------------------------------------
+git submodule deinit --all --force
+git submodule init
+git submodule update
+```
+
+## 1.2. You are interested on the latest features. ##
+
+All the latest features are somehow pushed to the `develop` branches of each NF repository.
+
+It means that we/you are able to build and the Continuous Integration test suite makes sure it
+does NOT break any existing tested feature.
+
+Anyhow, the tutorials' docker-compose files on the latest commit of the `master` branch of
+`openair-epc-fed` repository SHALL support any additional un-tested feature.
+
+```bash
+# Clone
+$ git clone  https://gitlab.eurecom.fr/oai/cn5g/oai-cn5g-fed.git
+$ cd oai-cn5g-fed
+# On an existing repository, resync to the last `master` commit
+$ git fetch --prune
+$ git checkout master
+$ git rebase origin/master
+
+# Synchronize all git submodules
+$ ./scripts/syncComponentsLegacy.sh --hss-branch develop --mme-branch develop \
+                                    --spgwc-branch develop --spgwu-tiny-branch develop
 ---------------------------------------------------------
 OAI-HSS    component branch : develop
 OAI-MME    component branch : develop
 OAI-SPGW-C component branch : develop
 OAI-SPGW-U component branch : develop
 ---------------------------------------------------------
-....
+git submodule deinit --all --force
+git submodule init
+git submodule update
 ```
-
-In general, the `docker-compose` files (even in the tutorials) are up-to-date w/ `develop` latest commits in each sub-module.
 
 **CAUTION: At the time of writing (2020 / 10 / 26), only HSS and MME have a full CentOS-7 support.**
 
 It means that if you are on a CentOS 7 host, you will need to build a CentOS8 image of SPGW-C / SPGW-U-TINY.
+
+**CAUTION: (2021 / 07 / 28): CentOS dockerfiles are not part of the OAI CI process. They are certainly in need of maintenance.**
 
 # 2. Generic Parameters #
 
@@ -73,6 +105,11 @@ Here in our network configuration, we need to pass the "GIT PROXY" configuration
 
 *   If you do not need, remove the `--build-arg EURECOM_PROXY=".."` option.
 *   If you do need it, change with your proxy value.
+
+If you have re-building CN4G images, be careful that `docker` or `podman` may re-use `cached` blobs
+to construct the intermediate layers.
+
+We recommend to add the `--no-cache` option in that case.
 
 **CAUTION: the location of the dockerfiles HAVE CHANGED.**
 
@@ -83,7 +120,9 @@ Here in our network configuration, we need to pass the "GIT PROXY" configuration
 ```bash
 $ docker build --target oai-hss --tag oai-hss:production \
                --file component/oai-hss/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-hss
+               # The following line about proxy is certainly not needed in your env \
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" \
+               component/oai-hss
 $ docker image prune --force
 $ docker image ls
 oai-hss                 production             f478bafd7a06        1 minute ago          341MB
@@ -119,7 +158,9 @@ oai-hss                 production             5fa77e2b6b94        1 minute ago 
 ```bash
 $ docker build --target oai-mme --tag oai-mme:production \
                --file component/oai-mme/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-mme
+               # The following line about proxy is certainly not needed in your env \
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" \
+               component/oai-mme
 $ docker image prune --force
 $ docker image ls
 oai-mme                 prodution              45254be9f987        1 minute ago          256MB
@@ -155,7 +196,9 @@ oai-mme                 prodution              413cec7d8f3b        1 minute ago 
 ```bash
 $ docker build --target oai-spgwc --tag oai-spgwc:production \
                --file component/oai-spgwc/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwc
+               # The following line about proxy is certainly not needed in your env \
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" \
+               component/oai-spgwc
 $ docker image prune --force
 $ docker image ls
 oai-spgwc               production             b1ba7dd16bc5        1 minute ago          218MB
@@ -182,7 +225,9 @@ oai-spgwc               production             15ad64676b1f        1 minute ago 
 ```bash
 $ docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:production \
                --file component/oai-spgwu-tiny/docker/Dockerfile.ubuntu18.04 \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" component/oai-spgwu-tiny
+               # The following line about proxy is certainly not needed in your env \
+               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" \
+               component/oai-spgwu-tiny
 $ docker image prune --force
 $ docker image ls
 oai-spgwu-tiny          production             588e14481f2b        1 minute ago          220MB

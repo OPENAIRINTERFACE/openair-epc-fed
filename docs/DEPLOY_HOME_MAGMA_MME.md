@@ -25,10 +25,14 @@
 
 We are currently working on the RAN side to fix these issues.
 
+**2021/07/28 Update: you have now the choice to either pull images or build your-self.**
+
 **Table of Contents**
 
 1.  [Pre-requisites](./DEPLOY_PRE_REQUESITES_MAGMA.md)
-2.  [Building the Docker Images](./BUILD_IMAGES_MAGMA_MME.md)
+2.  Getting the images
+    1.  [Retrieving the Container Images](./RETRIEVE_OFFICIAL_IMAGES_MAGMA.md)
+    2.  [Building the Container Images](./BUILD_IMAGES_MAGMA_MME.md)
 3.  [Deploying with MAGMA-MME using docker-compose](../docker-compose/magma-mme-demo/README.md)
 4.  [Verify/Correct your network environment](./CONFIGURE_NETWORKS_MAGMA.md)
 5.  [Demo made during 2021 MAGMA-dev conference](./NSA_SUPPORT_OAI_RAN.md)
