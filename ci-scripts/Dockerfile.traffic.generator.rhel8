@@ -63,6 +63,11 @@ RUN git clone https://git.code.sf.net/p/iperf2/code /iperf-2.0.10 && \
     git checkout -f ce9d976ae6534f0cc93c4a4050f0a395ac8d9887 && \
     ./configure && \
     make
+RUN git clone https://git.code.sf.net/p/iperf2/code /iperf-2.0.13 && \
+    cd /iperf-2.0.13 && \
+    git checkout -f 41bfc67a9d2c654c360953575ee5160ee4d798e7 && \
+    ./configure && \
+    make
 
 #---------------------------------------------------------------------
 # TARGET IMAGE
@@ -89,5 +94,8 @@ COPY --from=trf-gen-builder /iperf-2.0.5/src/iperf .
 
 WORKDIR /iperf-2.0.10/bin
 COPY --from=trf-gen-builder /iperf-2.0.10/src/iperf .
+
+WORKDIR /iperf-2.0.13/bin
+COPY --from=trf-gen-builder /iperf-2.0.13/src/iperf .
 
 CMD ["sleep", "infinity"]

@@ -31,42 +31,54 @@
 FROM ubuntu:bionic as trf-gen-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Europe
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-    build-essential \
-    wget \
-    libpthread-stubs0-dev \
+ENV TZ=Europe/Paris
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      build-essential \
+      git \
+      wget \
+      libpthread-stubs0-dev \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-RUN wget --tries=3 https://iperf.fr/download/source/iperf-2.0.5-source.tar.gz
-RUN gzip -cd iperf-2.0.5-source.tar.gz | tar -xvf -
+RUN wget --tries=3 https://iperf.fr/download/source/iperf-2.0.5-source.tar.gz && \
+    gzip -cd iperf-2.0.5-source.tar.gz | tar -xvf -
 
 WORKDIR /iperf-2.0.5
-RUN sed -i -e "s@#include <math@//#include <math@" include/headers.h
-RUN ./configure
-RUN make
+RUN sed -i -e "s@#include <math@//#include <math@" include/headers.h && \
+    ./configure && \
+    make
+
+RUN git clone https://git.code.sf.net/p/iperf2/code /iperf-2.0.13 && \
+    cd /iperf-2.0.13 && \
+    git checkout -f 41bfc67a9d2c654c360953575ee5160ee4d798e7 && \
+    ./configure && \
+    make
 
 #---------------------------------------------------------------------
 # TARGET IMAGE
 #---------------------------------------------------------------------
 FROM ubuntu:bionic as trf-gen
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Europe
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ENV TZ=Europe/Paris
 # We install some debug tools for the moment in addition of mandatory libraries
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-    psmisc \
-    net-tools \
-    tshark \
-    iperf \
-    iproute2 \
-    iputils-ping \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      psmisc \
+      net-tools \
+      tshark \
+      tzdata \
+      iperf \
+      iproute2 \
+      iputils-ping \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /iperf-2.0.5/bin
 COPY --from=trf-gen-builder /iperf-2.0.5/src/iperf .
+WORKDIR /iperf-2.0.13/bin
+COPY --from=trf-gen-builder /iperf-2.0.13/src/iperf .
 
 WORKDIR /iperf-2.0.5
 
