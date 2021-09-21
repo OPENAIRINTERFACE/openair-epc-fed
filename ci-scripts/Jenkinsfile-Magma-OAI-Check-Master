@@ -30,10 +30,17 @@ pipeline {
     stage ('Trigger MAGMA pipeline') {
       steps {
         script {
-          build wait: false, job: magma_job,
+          localStatus = build job: magma_job,
             parameters: [
               booleanParam(name: 'REGRESSION_TEST', value: true)
-            ]
+            ], propagate: false
+          localResult = localStatus.getResult()
+          echo "${magma_job} Slave Job status is ${localResult}"
+          if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+            echo "${magma_job} Slave Job is OK"
+          } else {
+            error "${magma_job} Slave Job is OK"
+          }
         }
       }
     }
