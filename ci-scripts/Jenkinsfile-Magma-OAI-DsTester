@@ -280,7 +280,8 @@ pipeline {
     always {
       script {
         dir('ci-scripts/dsTesterDockerCompose') {
-          sh 'docker-compose down > ../../archives/compose_preventive_down.log 2>&1'
+          sh 'docker-compose down > ../../archives/compose_preventive_down.log 2>&1 || true'
+          sh 'docker volume prune --force > /dev/null 2>&1 || true'
         }
         // Zipping all archived log files
         sh "zip -r -qq fed_docker_logs.zip archives DS-TEST-RESULTS/*.tar DS-TEST-RESULTS/status.txt"
