@@ -243,6 +243,7 @@ class HtmlReport():
 				self.file.write('    <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 		else:
+			finalStatusOK = False
 			self.file.write('  <div class="alert alert-warning">\n')
 			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 			self.file.write('  </div>\n')
