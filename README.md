@@ -16,7 +16,7 @@
     <a href="https://jenkins-oai.eurecom.fr/job/OAI-CN-HSS/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FOAI-CN-HSS%2F&label=build%20HSS"></a>
     <a href="https://jenkins-oai.eurecom.fr/job/OAI-CN-SPGWC/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FOAI-CN-SPGWC%2F&label=build%20SPGWC"></a>
     <a href="https://jenkins-oai.eurecom.fr/job/OAI-CN-SPGWU-TINY/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FOAI-CN-SPGWU-TINY%2F&label=build%20SPGWU-TINY"></a>
-    <a href="https://jenkins-oai.eurecom.fr/job/MAGMA-MME-production/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FMAGMA-MME-production%2F&label=build%20MAGMA-MME"></a>
+    <a href="https://jenkins-oai.eurecom.fr/job/MAGMA-MME-master-check/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FMAGMA-MME-master-check%2F&label=build%20MAGMA-MME"></a>
 </p>
 
   Openair-cn is an implementation of the 3GPP specifications concerning the
