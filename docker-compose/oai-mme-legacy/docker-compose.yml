@@ -136,7 +136,7 @@ services:
             APN_NI_2: oai2.ipv4
             DEFAULT_APN_NI_1: oai.ipv4
             UE_IP_ADDRESS_POOL_1: '12.1.1.2 - 12.1.1.254'
-            UE_IP_ADDRESS_POOL_2: '12.0.0.2 - 12.0.0.254'
+            UE_MTU_IPV4: 1500
             MCC: '208'
             MNC: '96'
             MNC03: '096'
