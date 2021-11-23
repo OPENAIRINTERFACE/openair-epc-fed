@@ -209,6 +209,9 @@ This issue is in our **TODO** list and we are still investigating.
 Another known issue is if the UE send a `TAU request` to the MME. Currently the MAGMA MME with an OAI eNB
 does not handle it well. We are also working on providing a fix for this issue.
 
+**Update (2021/11/22): Implementation of `TAU request` response in the MME has been merged in September in MAGMA `master` branch.**
+We validated it on our RAN CI bench.
+
 ## 6.3. Build the MAGMA-MME Ubuntu18 Docker image ##
 
 On our CI server (a 48-CPU server), this operation takes around **30-35 minutes**. Please be patient.
@@ -252,7 +255,7 @@ And use the CI docker file.
 $ docker build --target magma-mme --tag magma-mme:next-image-tag --file ci-scripts/docker/Dockerfile.mme.ci.ubuntu18 .
 ```
 
-This will only take **5 minutes** to re-build a MAGMA-MME image.
+This will only take **5 to 10 minutes** to re-build a MAGMA-MME image.
 
 Normally you are ready to deploy and test.
 

@@ -83,7 +83,7 @@ function generateConfFile()
   echo '        T3402                                 =  1                              # in minutes (default is 12 minutes)' >> mme.conf
   echo '        T3412                                 =  54                             # in minutes (default is 54 minutes, network dependent)' >> mme.conf
   echo '        T3422                                 =  6                              # in seconds (default is 6s)' >> mme.conf
-  echo '        T3450                                 =  6                              # in seconds (default is 6s)' >> mme.conf
+  echo '        T3450                                 =  5000                           # in seconds (default is 6s)' >> mme.conf
   echo '        T3460                                 =  6                              # in seconds (default is 6s)' >> mme.conf
   echo '        T3470                                 =  6                              # in seconds (default is 6s)' >> mme.conf
   echo '        T3485                                 =  8                              # UNUSED in seconds (default is 8s)' >> mme.conf
@@ -222,7 +222,7 @@ popd
 set +x
 
 echo "Starting tcpdump capture"
-nohup tcpdump -i any -w /magma-mme/mme-`date -u +"%Y-%m-%dT%H-%M-%S"`.pcap > /dev/null 2>&1 &
+nohup tcpdump -i eth0 -f "not icmp6 and not arp and not port 22 and not port 53" -w /magma-mme/mme-`date -u +"%Y-%m-%dT%H-%M-%S"`.pcap > /dev/null 2>&1 &
 sleep 5
 
 echo "Starting sctpd"
