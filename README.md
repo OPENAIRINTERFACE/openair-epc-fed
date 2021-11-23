@@ -13,10 +13,20 @@
 <p align="center">
     <a href="https://github.com/OPENAIRINTERFACE/openair-epc-fed/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-BSD3clause-blue.svg" alt="License"></a>
     <a href="https://github.com/OPENAIRINTERFACE/openair-spgwc/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-OAI--Public--V1.1-blue" alt="License"></a>
+    <a href="https://github.com/OPENAIRINTERFACE/openair-epc-fed/releases"><img src="https://img.shields.io/github/v/release/OPENAIRINTERFACE/openair-epc-fed" alt="Release"></a>
+</p>
+
+<p align="center">
     <a href="https://jenkins-oai.eurecom.fr/job/OAI-CN-HSS/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FOAI-CN-HSS%2F&label=build%20HSS"></a>
     <a href="https://jenkins-oai.eurecom.fr/job/OAI-CN-SPGWC/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FOAI-CN-SPGWC%2F&label=build%20SPGWC"></a>
     <a href="https://jenkins-oai.eurecom.fr/job/OAI-CN-SPGWU-TINY/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FOAI-CN-SPGWU-TINY%2F&label=build%20SPGWU-TINY"></a>
     <a href="https://jenkins-oai.eurecom.fr/job/MAGMA-MME-master-check/"><img src="https://img.shields.io/jenkins/build?jobUrl=https%3A%2F%2Fjenkins-oai.eurecom.fr%2Fjob%2FMAGMA-MME-master-check%2F&label=build%20MAGMA-MME"></a>
+</p>
+
+<p align="center">
+  <a href="https://hub.docker.com/r/rdefosseoai/oai-hss"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-hss?label=HSS%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/rdefosseoai/oai-spgwc"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-spgwc?label=SPGWC%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/rdefosseoai/oai-spgwu-tiny"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-spgwu-tiny?label=SPGWU-TINY%20docker%20pulls"></a>
 </p>
 
   Openair-cn is an implementation of the 3GPP specifications concerning the
