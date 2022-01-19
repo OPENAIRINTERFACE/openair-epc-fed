@@ -21,6 +21,7 @@ In these pages, we are describing how to build and deploy an LTE EPC using the *
    -  Currently `OAI LTE-UE softmodem` does **NOT** connect with `MAGMA-MME`.
 -  You will deploy, connect your eNB(s), your COTS-UE(s),
    - Then do your experiments and then stop everything.
+   - But even with Commercial UE(s) or modem USB key(s), we **strongly recommend** you to use the `MAGMA-MME`.
 
 # Why you should NOT be using this deployment? #
 
@@ -31,6 +32,8 @@ In these pages, we are describing how to build and deploy an LTE EPC using the *
    - We are **NO MORE** performing maintenance on the legacy **OAI MME**.
    - The last valid tag on the MME is **2020.w47**.
    - Our developers are now contributing to the **MAGMA-MME**.
+*  You want to connect a **VERY RECENT** commercial UE (or modem USB key).
+   - Their modem firmware will certainly contain new `Information Elements` and these may not be supported by this MME version.
 
 **2021/07/28 Update: you have now the choice to either pull images or build your-self.**
 
