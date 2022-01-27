@@ -278,6 +278,10 @@ class deployWithOAIran:
 
         subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' --health-cmd "pgrep --count oai_spgwc" -d oai-spgwc:' + self.tag)
         time.sleep(2)
+        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "yum update -y > /dev/null 2>&1"')
+        time.sleep(1)
+        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "yum install -y tcpdump > /dev/null 2>&1"')
+        time.sleep(1)
         subprocess_run_w_echo(self.cli + ' exec -d cicd-oai-spgwc /bin/bash -c "nohup tcpdump -i any -w /openair-spgwc/spgwc.pcap > /dev/null 2>&1"')
 
         count = 0
