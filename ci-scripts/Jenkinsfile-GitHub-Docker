@@ -37,6 +37,7 @@ def cn_ci_host = params.Host_CN_CI_Server
 // for lock
 def cn_ci_resource = params.DockerContainers
 def ds_tester_ci_resource = params.DsTester
+def ds_tester_flag = params.PerformDsTesterTestSuite
 
 // Location of the DsTester workspace
 def dsTestFrameworkLocation = params.dsTestFrameworkLocation
@@ -89,34 +90,6 @@ pipeline {
 
           JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
           JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
-
-          if (params.DS_Tester_Server_Flag != null) {
-            dsT_host_flag = params.DS_Tester_Server_Flag
-            if (dsT_host_flag) {
-              def allParametersPresent = true
-              if (params.DS_Tester_Server_Name == null) {
-                allParametersPresent = false
-              } else {
-                dsT_host = params.DS_Tester_Server_Name
-              }
-              if (params.DS_Tester_Server_Login == null) {
-                allParametersPresent = false
-              } else {
-                dsT_host_user = params.DS_Tester_Server_Login
-              }
-              if (params.DS_Tester_Server_IP_Addr == null) {
-                allParametersPresent = false
-              } else {
-                dsT_host_ip_addr = params.DS_Tester_Server_IP_Addr
-              }
-              if (allParametersPresent) {
-                echo "DS Tester  is on ${dsT_host}"
-              } else {
-                echo "Some DS Tester parameters are missing!"
-                sh "./ci-scripts/fail.sh"
-              }
-            }
-          }
 
           // Find out the cause of the trigger
           for (cause in currentBuild.getBuildCauses()) {
@@ -407,8 +380,8 @@ pipeline {
         }
       }
     }
-    stage ('Check with DS Tester') {
-      when { expression {dsT_host_flag} }
+    stage ('Test EPC') {
+      when { expression {ds_tester_flag} }
       steps {
         lock (ds_tester_ci_resource) {
           script {
@@ -493,7 +466,11 @@ pipeline {
           sh 'docker image prune --force'
         }
         // Generating the HTML report
-        sh 'python3 ./ci-scripts/dsTestGenerateHTMLReportLegacy.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+        if (ds_tester_flag) {
+          sh 'python3 ./ci-scripts/dsTestGenerateHTMLReportLegacy.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --ds_tester=True'
+        } else {
+          sh 'python3 ./ci-scripts/dsTestGenerateHTMLReportLegacy.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --ds_tester=False'
+        }
 
         // Zipping all archived log files
         sh "zip -r -qq fed_docker_logs.zip archives DS-TEST-RESULTS/*.tar DS-TEST-RESULTS/status.txt"

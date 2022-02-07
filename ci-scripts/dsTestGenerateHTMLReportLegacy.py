@@ -31,6 +31,7 @@ class HtmlReport():
 		self.job_id = ''
 		self.job_url = ''
 		self.job_start_time = 'TEMPLATE_TIME'
+		self.dsTestRan = False
 
 	def generate(self):
 		cwd = os.getcwd()
@@ -40,7 +41,8 @@ class HtmlReport():
 		self.deploymentSummaryHeader()
 
 		finalStatus = self.testSummaryHeader()
-		self.testSummaryDetails()
+		if self.dsTestRan:
+			self.testSummaryDetails()
 		self.testSummaryFooter()
 
 		self.generateFooter()
@@ -243,9 +245,13 @@ class HtmlReport():
 				self.file.write('    <strong>Failed DsTester suite! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 				self.file.write('  </div>\n')
 		else:
-			finalStatusOK = False
 			self.file.write('  <div class="alert alert-warning">\n')
-			self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+			if self.dsTestRan:
+				finalStatusOK = False
+				self.file.write('    <strong>LogFile not available! <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+			else:
+				finalStatusOK = True
+				self.file.write('    <strong>The Test Stage is now bypassed! It will be replaced soon. <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
 			self.file.write('  </div>\n')
 		return finalStatusOK
 
@@ -344,6 +350,13 @@ while len(argvs) > 1:
 	elif re.match('^\-\-job_url=(.+)$', myArgv, re.IGNORECASE):
 		matchReg = re.match('^\-\-job_url=(.+)$', myArgv, re.IGNORECASE)
 		HTML.job_url = matchReg.group(1)
+	elif re.match('^\-\-ds_tester=(.+)$', myArgv, re.IGNORECASE):
+		matchReg = re.match('^\-\-ds_tester=(.+)$', myArgv, re.IGNORECASE)
+		dsTestRan = matchReg.group(1)
+		if ((dsTestRan == 'true') or (dsTestRan == 'True')):
+			HTML.dsTestRan = True
+		else:
+			HTML.dsTestRan = False
 	else:
 		sys.exit('Invalid Parameter: ' + myArgv)
 
