@@ -26,6 +26,7 @@ def cn_ci_host = params.Host_CN_CI_Server
 // for lock
 def cn_ci_resource = params.DockerContainers
 def ds_tester_ci_resource = params.DsTester
+def ds_tester_flag = params.PerformDsTesterTestSuite
 
 // Location of the DsTester workspace
 def dsTestFrameworkLocation = params.dsTestFrameworkLocation
@@ -252,13 +253,13 @@ pipeline {
       }
     }
     stage ('Test EPC') {
+      when { expression {ds_tester_flag} }
       steps {
         lock (ds_tester_ci_resource) {
           script {
             echo '\u2705 \u001B[32mTesting with DsTester framework\u001B[0m'
             sh 'cd ' + dsTestFrameworkLocation + ' && git clean -x -d -f > /dev/null'
             sh 'cd ' + dsTestFrameworkLocation + '/scripts && export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.:/usr/local/devsol/bin && CI_ENV=True CI_MAGMA=True SRC_BASE_DIR=' + WORKSPACE + ' ./run-4gc.bash -pt --shark --detach --get-results --4g > ' + WORKSPACE + '/archives/run-4g-dstester.log 2>&1'
-            sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
             sh 'cd ' + dsTestFrameworkLocation + ' && git stash > /dev/null'
             sh 'cd ' + dsTestFrameworkLocation + ' && git stash clear > /dev/null'
           }
@@ -288,6 +289,7 @@ pipeline {
         if (fileExists('fed_docker_logs.zip')) {
           archiveArtifacts artifacts: 'fed_docker_logs.zip'
         }
+        sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
         if (fileExists('test_results_oai_epc.html')) {
           sh 'mv test_results_oai_epc.html test_results_magma_oai_epc.html'
           archiveArtifacts artifacts: 'test_results_magma_oai_epc.html'
