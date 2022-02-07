@@ -289,7 +289,11 @@ pipeline {
         if (fileExists('fed_docker_logs.zip')) {
           archiveArtifacts artifacts: 'fed_docker_logs.zip'
         }
-        sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL
+        if (ds_tester_flag) {
+          sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --ds_tester=True'
+        } else {
+          sh 'python3 ./ci-scripts/dsTestGenerateHTMLReport.py --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --ds_tester=False'
+        }
         if (fileExists('test_results_oai_epc.html')) {
           sh 'mv test_results_oai_epc.html test_results_magma_oai_epc.html'
           archiveArtifacts artifacts: 'test_results_magma_oai_epc.html'
