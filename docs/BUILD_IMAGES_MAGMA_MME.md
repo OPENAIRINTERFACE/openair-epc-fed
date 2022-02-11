@@ -24,6 +24,9 @@
    2. [Prepare the source code for a MAGMA-MME Docker Image build](#62-prepare-the-source-code-for-a-magma-mme-docker-image-build)
    3. [Build the MAGMA-MME Ubuntu18 Docker image](#63-build-the-magma-mme-ubuntu18-docker-image)
 
+
+This page is only for `Ubuntu18` builds. For other distributions, see [here](./BUILD_IMAGES.md).
+
 # 1.  Retrieve the proper code version on the OAI-CN part #
 
 **CAUTION: PLEASE READ THIS SECTION VERY CAREFULLY!**
@@ -42,21 +45,22 @@ We recommend to synchronize with the master branches on all git sub-modules.
 
 We also recommend that you synchronize this "tutorial" repository with a provided tag. By doing so, the `docker-compose` files will be aligned with feature sets of each NF.
 
-**At the time of writing (2021/07/28), the release tag is v1.1.2.**
+**At the time of writing (2022/02/25), the release tag is v1.2.0.**
 
 | CNF Name    | Branch Name | Tag        | Ubuntu 18.04 | RHEL8 (UBI8)    |
 | ----------- | ----------- | ---------- | ------------ | ----------------|
-| FED REPO    | N/A         | `v1.1.2`   |              |                 |
-| HSS         | `master`    | `v1.1.2`   | X            | X               |
-| SPWG-C      | `master`    | `v1.1.2`   | X            | X               |
-| SPGW-U-TINY | `master`    | `v1.1.2`   | X            | X               |
+| FED REPO    | N/A         | `v1.2.0`   |              |                 |
+| HSS         | `master`    | `v1.2.0`   | X            | X               |
+| SPWG-C      | `master`    | `v1.2.0`   | X            | X               |
+| SPGW-U-TINY | `master`    | `v1.2.0`   | X            | X               |
+| MAGMA-MME   | `master`    | `N/A`      | X            | X               |
 
 ```bash
 # Clone directly on the latest release tag
-$ git clone --branch v1.1.2 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
+$ git clone --branch v1.2.0 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
 # If you forgot to clone directly to the latest release tag
-$ git checkout -f v1.1.2
+$ git checkout -f v1.2.0
 
 # Synchronize all git submodules
 $ ./scripts/syncComponents.sh

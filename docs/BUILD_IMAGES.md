@@ -30,28 +30,27 @@ We recommend to synchronize with the master branches on all git sub-modules.
 
 We also recommend that you synchronize this "tutorial" repository with a provided tag. By doing so, the `docker-compose` files will be aligned with feature sets of each NF.
 
-**At the time of writing (2021/07/28), the release tag is v1.1.2.**
+**At the time of writing (2022/02/25), the release tag is v1.2.0.**
 
 | CNF Name    | Branch Name | Tag        | Ubuntu 18.04 | RHEL8 (UBI8)    |
 | ----------- | ----------- | ---------- | ------------ | ----------------|
 | FED REPO    | N/A         | `v1.1.2`   |              |                 |
 | HSS         | `master`    | `v1.1.2`   | X            | X               |
-| MME         | `develop`   | `2020.w47` | X            | X               |
 | SPWG-C      | `master`    | `v1.1.2`   | X            | X               |
 | SPGW-U-TINY | `master`    | `v1.1.2`   | X            | X               |
+| MAGMA-MME   | `master`    | `N/A`      | X            | X               |
 
 ```bash
 # Clone directly on the latest release tag
-$ git clone --branch v1.1.2 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
+$ git clone --branch v1.2.0 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
 # If you forgot to clone directly to the latest release tag
-$ git checkout -f v1.1.2
+$ git checkout -f v1.2.0
 
 # Synchronize all git submodules
-$ ./scripts/syncComponentsLegacy.sh
+$ ./scripts/syncComponents.sh
 ---------------------------------------------------------
 OAI-HSS    component branch : master
-OAI-MME    component branch : develop
 OAI-SPGW-C component branch : master
 OAI-SPGW-U component branch : master
 ---------------------------------------------------------
@@ -80,11 +79,10 @@ $ git checkout master
 $ git rebase origin/master
 
 # Synchronize all git submodules
-$ ./scripts/syncComponentsLegacy.sh --hss-branch develop --mme-branch develop \
-                                    --spgwc-branch develop --spgwu-tiny-branch develop
+$ ./scripts/syncComponents.sh --hss-branch develop \
+                              --spgwc-branch develop --spgwu-tiny-branch develop
 ---------------------------------------------------------
 OAI-HSS    component branch : develop
-OAI-MME    component branch : develop
 OAI-SPGW-C component branch : develop
 OAI-SPGW-U component branch : develop
 ---------------------------------------------------------
@@ -151,47 +149,9 @@ oai-hss                 production             5fa77e2b6b94        1 minute ago 
 ...
 ```
 
-# 4. Build MME Image #
+# 4. Build SPGW-C Image #
 
 ## 4.1 On a Ubuntu 18.04 Host ##
-
-```bash
-$ docker build --target oai-mme --tag oai-mme:production \
-               --file component/oai-mme/docker/Dockerfile.ubuntu18.04 \
-               # The following line about proxy is certainly not needed in your env \
-               --build-arg EURECOM_PROXY="http://proxy.eurecom.fr:8080" \
-               component/oai-mme
-$ docker image prune --force
-$ docker image ls
-oai-mme                 prodution              45254be9f987        1 minute ago          256MB
-...
-```
-
-## 4.2 On a CentOS 7 Host ##
-
-```bash
-$ docker build --target oai-mme --tag oai-mme:production \
-               --file component/oai-mme/docker/Dockerfile.centos7 component/oai-mme
-$ docker image prune --force
-$ docker image ls
-oai-mme                 prodution              4133e75b6fc4        1 minute ago          406MB
-...
-```
-
-## 4.3 On a CentOS 8 Host ##
-
-```bash
-$ docker build --target oai-mme --tag oai-mme:production \
-               --file component/oai-mme/docker/Dockerfile.centos8 component/oai-mme
-$ docker image prune --force
-$ docker image ls
-oai-mme                 prodution              413cec7d8f3b        1 minute ago          412MB
-...
-```
-
-# 5. Build SPGW-C Image #
-
-## 5.1 On a Ubuntu 18.04 Host ##
 
 ```bash
 $ docker build --target oai-spgwc --tag oai-spgwc:production \
@@ -205,7 +165,7 @@ oai-spgwc               production             b1ba7dd16bc5        1 minute ago 
 ...
 ```
 
-## 5.2 On a CentOS 7/8 Host ##
+## 4.2 On a CentOS 7/8 Host ##
 
 **Even if we are on a CentOS7 host, we build the SPGW-C image using the CentOS-8 dockerfile.**
 
@@ -218,9 +178,9 @@ oai-spgwc               production             15ad64676b1f        1 minute ago 
 ...
 ```
 
-# 6, Build SPGW-U Image #
+# 5. Build SPGW-U Image #
 
-## 6.1 On a Ubuntu 18.04 Host ##
+## 5.1 On a Ubuntu 18.04 Host ##
 
 ```bash
 $ docker build --target oai-spgwu-tiny --tag oai-spgwu-tiny:production \
@@ -234,7 +194,7 @@ oai-spgwu-tiny          production             588e14481f2b        1 minute ago 
 ...
 ```
 
-## 6.2 On a CentOS 7/8 Host ##
+## 5.2 On a CentOS 7/8 Host ##
 
 **Even if we are on a CentOS7 host, we build the SPGW-U image using the CentOS-8 dockerfile.**
 
@@ -247,7 +207,6 @@ oai-spgwu-tiny          production             f2d0a07fba2c        1 minute ago 
 ...
 ```
 
-To deploy: 
+# 6. Build MAGMA-MME image #
 
-* [Using a docker-compose easier approach](../docker-compose/oai-mme-legacy/README.md) (RECOMMENDED)
-
+It is possible to build it on a RHEL8 Base image.

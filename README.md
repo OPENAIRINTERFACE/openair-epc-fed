@@ -27,6 +27,7 @@
   <a href="https://hub.docker.com/r/rdefosseoai/oai-hss"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-hss?label=HSS%20docker%20pulls"></a>
   <a href="https://hub.docker.com/r/rdefosseoai/oai-spgwc"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-spgwc?label=SPGWC%20docker%20pulls"></a>
   <a href="https://hub.docker.com/r/rdefosseoai/oai-spgwu-tiny"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-spgwu-tiny?label=SPGWU-TINY%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/rdefosseoai/magma-mme"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/magma-mme?label=MAGMA-MME%20docker%20pulls"></a>
 </p>
 
   Openair-cn is an implementation of the 3GPP specifications concerning the
@@ -41,9 +42,10 @@
 
   Currently the purpose of this repository is mainly for CI activities and documentation.
 
+  **AS OF 2022/02/25, WE HAVE OBSOLETED OUR LEGACY OAI-MME. THE ONLY RECOMMENDED AND SUPPORTED MME IS MAGMA-MME.**
+
   It is also hosting some tutorials:
 
-  - [Simple Docker Deployment using the OAI Legacy MME](./docs/DEPLOY_HOME.md)
   - [Deploying a whole EPC with MAGMA MME image](docs/DEPLOY_HOME_MAGMA_MME.md)
 
 # Licence info
@@ -55,7 +57,7 @@
   This repository is just an aggregation of git repositories as sub-modules. Each repository has its own LICENSE file.
 
   - OAI-HSS --> **3-Clause BSD License**
-  - OAI-MME --> **3-Clause BSD License**
+  - MAGMA-MME --> **3-Clause BSD License**
   - OAI-SPGWC --> **OAI Public License V1.1**
   - OAI-SPGWU-TINY --> **OAI Public License V1.1**
 

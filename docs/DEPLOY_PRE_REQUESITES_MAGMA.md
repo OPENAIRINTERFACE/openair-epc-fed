@@ -70,6 +70,8 @@ $ docker pull cassandra:2.1
 $ docker pull redis:6.0.5
 ```
 
+If the `redis` tag is not available, pick the newest available `6.0.x` tag at [Docker Hub Redis Tags](https://hub.docker.com/_/redis?tab=tags).
+
 Finally you may logoff --> your token is stored in plain text..
 
 ```bash

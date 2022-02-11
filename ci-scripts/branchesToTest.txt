@@ -1,9 +1,0 @@
-# Modify the name of the branches you want to test in each repository
-# You can even delete lines --> the default `develop` branch/tag will be used
-# The initial KEYWORD ("HSS:" for example) SHALL NOT BE MODIFIED
-# There SHALL be a SINGLE space between the ":" character and the first character of the branch name
-# There SHALL NOT be ANY space at the end of line after the branch name
-HSS: develop
-MME: develop
-SPGW-C: develop
-SPGW-U-TINY: develop
