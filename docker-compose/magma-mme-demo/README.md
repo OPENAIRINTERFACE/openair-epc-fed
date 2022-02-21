@@ -58,6 +58,15 @@ You can keep the container but it is dead.
 
 To go to the next step, you **SHALL** have the "OK" message in the `demo-db-init` container logs.
 
+Wait a bit to ensure that the following logs are present in launching the cassandra docker image. If its not the case, the HSS docker image will stop in the next step prematurely.
+
+```bash
+$ docker logs demo-cassandra
+....
+INFO  20:19:40 Initializing vhss.extid_imsi_xref
+```
+
+
 # 2. Deploy the rest of EPC #
 
 ```bash
