@@ -37,8 +37,8 @@ def spgwuTag = 'develop'
 def spgwuBranch = 'develop'
 
 // RAN Tags to use
-def oaiEnbTag = 'develop-2021-w20-gen'
-def oaiLteUeTag = 'develop-2021-w20-gen'
+def oaiEnbTag = ''
+def oaiLteUeTag = ''
 
 // Flags
 def scmEvent = false
@@ -49,6 +49,7 @@ def retrievedLogs = false
 def containerCli = ''
 def containerHealth = ''
 def reportName = ''
+def zipName = ''
 
 //-------------------------------------------------------------------------------
 // Pipeline start
@@ -69,11 +70,17 @@ pipeline {
           if (cn_ci_host == 'cetautomatix') {
             containerCli = 'sudo podman'
             containerHealth = 'Healthcheck'
-            reportName = 'test_results_magma_epc_u18.html'
+            oaiEnbTag = 'develop-2021-w20-gen'
+            oaiLteUeTag = 'develop-2021-w20-gen'
+            reportName = 'test_results_magma_epc_rhel8.html'
+            zipName = 'fed_podman_logs.zip'
           } else if (cn_ci_host == 'orion') {
             containerCli = 'docker'
             containerHealth = 'Health'
-            reportName = 'test_results_magma_epc_rhel8.html'
+            oaiEnbTag = 'develop'
+            oaiLteUeTag = 'develop'
+            reportName = 'test_results_magma_epc_u18.html'
+            zipName = 'fed_docker_logs.zip'
           } else {
             error 'Not supported CI host'
           }
@@ -288,9 +295,9 @@ pipeline {
         sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks > /dev/null 2>&1 || true'
         sh containerCli + ' volume prune --force > /dev/null 2>&1 || true'
         // Zipping all archived log files
-        sh "zip -r -qq fed_podman_logs.zip archives"
-        if (fileExists('fed_podman_logs.zip')) {
-          archiveArtifacts artifacts: 'fed_podman_logs.zip'
+        sh 'zip -r -qq ' + zipName + ' archives'
+        if (fileExists(zipName)) {
+          archiveArtifacts artifacts: zipName
         }
         // If report not present, certainly something wrong occured.
         // Generate it anyway without caring out about result
