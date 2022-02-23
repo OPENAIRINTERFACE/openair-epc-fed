@@ -154,10 +154,10 @@ class deployWithOAIran:
     def deployRedis(self):
         redisConfFile = ''
         cwd = os.getcwd()
-        if os.path.isfile(cwd + '/ci-scripts/oai-ran-sanity-check/redis_extern.conf'):
-            redisConfFile = './ci-scripts/oai-ran-sanity-check/redis_extern.conf'
-        elif os.path.isfile(cwd + '/oai-ran-sanity-check/redis_extern.conf'):
-            redisConfFile = './oai-ran-sanity-check/redis_extern.conf'
+        if os.path.isfile(cwd + '/ci-scripts/oai-ran-sanity-check/redis-extern.conf'):
+            redisConfFile = cwd + '/ci-scripts/oai-ran-sanity-check/redis-extern.conf'
+        elif os.path.isfile(cwd + '/oai-ran-sanity-check/redis-extern.conf'):
+            redisConfFile = cwd + '/oai-ran-sanity-check/redis-extern.conf'
         else:
             sys.exit(-1)
 
@@ -193,12 +193,14 @@ class deployWithOAIran:
         cwd = os.getcwd()
         if os.path.isfile(cwd + '/ci-scripts/oai-ran-sanity-check/mme.env'):
             mmeEnvFile = './ci-scripts/oai-ran-sanity-check/mme.env'
-            mmeEntrypoint = './ci-scripts/oai-ran-sanity-check/mme-entrypoint.sh'
+            mmeEntrypoint = cwd + '/ci-scripts/oai-ran-sanity-check/mme-entrypoint.sh'
         elif os.path.isfile(cwd + '/oai-ran-sanity-check/mme.env'):
             mmeEnvFile = './oai-ran-sanity-check/mme.env'
-            mmeEntrypoint = './oai-ran-sanity-check/mme-entrypoint.sh'
+            mmeEntrypoint = cwd + '/oai-ran-sanity-check/mme-entrypoint.sh'
         else:
             sys.exit(-1)
+        if self.cli == 'docker':
+            subprocess_run_w_echo('sed -i -e "s@tcpdump@tshark@" ' + mmeEntrypoint)
 
         subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-mme --hostname mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' --volume ' + mmeEntrypoint + ':/magma-mme/bin/entrypoint.sh --env-file ' + mmeEnvFile + ' --entrypoint "/magma-mme/bin/entrypoint.sh" --health-cmd "pgrep --count oai_mme" -d magma-mme:' + self.tag)
 
@@ -277,12 +279,16 @@ class deployWithOAIran:
             sys.exit(-1)
 
         subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-spgwc --network cicd-oai-public-net --ip ' + CICD_SPGWC_PUBLIC_ADDR + ' --env-file ' + spgwcEnvFile + ' --health-cmd "pgrep --count oai_spgwc" -d oai-spgwc:' + self.tag)
-        time.sleep(2)
-        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "yum update -y > /dev/null 2>&1"')
-        time.sleep(1)
-        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "yum install -y tcpdump > /dev/null 2>&1"')
-        time.sleep(1)
-        subprocess_run_w_echo(self.cli + ' exec -d cicd-oai-spgwc /bin/bash -c "nohup tcpdump -i any -w /openair-spgwc/spgwc.pcap > /dev/null 2>&1"')
+        if self.cli == 'sudo podman':
+            time.sleep(2)
+            subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "yum update -y > /dev/null 2>&1"')
+            time.sleep(1)
+            subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "yum install -y tcpdump > /dev/null 2>&1"')
+            time.sleep(1)
+            captureCmd = 'tcpdump'
+        else:
+            captureCmd = 'tshark'
+        subprocess_run_w_echo(self.cli + ' exec -d cicd-oai-spgwc /bin/bash -c "nohup ' + captureCmd + ' -i any -w /openair-spgwc/spgwc.pcap > /dev/null 2>&1"')
 
         count = 0
         runCount = 0
@@ -427,19 +433,31 @@ class deployWithOAIran:
             subprocess_run_w_echo(self.cli + ' rm -f cicd-cassandra cicd-oai-hss cicd-redis cicd-oai-mme cicd-oai-spgwc cicd-oai-spgwu-tiny cicd-oai-enb cicd-oai-ue cicd-trf-gen')
         except:
             pass
+        if self.cli == 'docker':
+            cwd = os.getcwd()
+            if os.path.isfile(cwd + '/ci-scripts/oai-ran-sanity-check/mme-entrypoint.sh'):
+                subprocess_run_w_echo('git checkout -- ci-scripts/oai-ran-sanity-check/mme-entrypoint.sh')
+            elif os.path.isfile(cwd + '/oai-ran-sanity-check/mme-entrypoint.sh'):
+                subprocess_run_w_echo('git checkout -- oai-ran-sanity-check/mme-entrypoint.sh')
 
     def retrieveContainerLogs(self):
         subprocess_run_w_echo('mkdir -p archives')
         magmaUsed = True
         prefix = 'magma'
-        res = subprocess.check_output(self.cli + ' inspect --format="ImageName = {{.ImageName}}" cicd-oai-mme', shell=True, universal_newlines=True)
+        if self.cli == 'docker':
+            imageName = '.Config.Image'
+            captureCmd = 'tshark'
+        else:
+            imageName = '.ImageName'
+            captureCmd = 'tcpdump'
+        res = subprocess.check_output(self.cli + ' inspect --format="ImageName = {{' + imageName + '}}" cicd-oai-mme', shell=True, universal_newlines=True)
         if re.search('oai-mme:', str(res)):
             magmaUsed = False
             prefix = 'openair'
 
         # First stop tcpdump capture on MME container
-        subprocess_run_w_echo(self.cli + ' exec cicd-oai-mme /bin/bash -c "killall tcpdump"')
-        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "killall tcpdump"')
+        subprocess_run_w_echo(self.cli + ' exec cicd-oai-mme /bin/bash -c "killall ' + captureCmd + '"')
+        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "killall ' + captureCmd + '"')
         time.sleep(2)
         try:
             res = subprocess.check_output(self.cli + ' exec cicd-oai-mme /bin/bash -c "ls /' + prefix + '-mme/*.pcap"', shell=True, universal_newlines=True)
