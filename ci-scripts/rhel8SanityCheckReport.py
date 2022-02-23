@@ -348,9 +348,49 @@ class HtmlReport():
 			details += self.addDetailsRow('SPGWU SX HRT Response', res['spgwu_hrt_answer'], 'NB RES = ' + res['spgwu_hrt_nb_res'])
 			if not res['spgwc_hrt_request'] or not res['spgwu_hrt_answer']:
 				status = False
+		if os.path.isfile('archives/ping_trf_gen_from_ue.log') or os.path.isfile('archives/ping_ue_from_trf_gen.log'):
+			details += self.addSectionRow('Ping Traffic Test')
+			res = self.checkPingLog('archives/ping_trf_gen_from_ue.log')
+			if res['status']:
+				print('Ping From UE : OK')
+			else:
+				print('Ping From UE : KO')
+			details += self.addDetailsRow('Ping From UE', res['status'], res['stats'])
+			res = self.checkPingLog('archives/ping_ue_from_trf_gen.log')
+			if res['status']:
+				print('Ping From TRF GEN : OK')
+			else:
+				print('Ping From TRF GEN : KO')
+			details += self.addDetailsRow('Ping From TRF GEN', res['status'], res['stats'])
 		details += '  </table>\n'
 		details += '  </div>\n'
 		return [status, details]
+
+	def checkPingLog(self, fileName):
+		res = {}
+		res['status'] = False
+		res['stats'] = 'N/A'
+		if os.path.isfile(fileName):
+			statsLine = 'Stats for '
+			state = False
+			with open(fileName) as pingLog:
+				for line in pingLog:
+					if re.search('PING 1', line):
+						pingOp = re.sub(' :.*$', '', line)
+						pingOp = re.sub(' 56.*$', '', pingOp)
+						statsLine += pingOp
+					if re.search('packet loss', line):
+						statsLine += line
+						if re.search('100% packet loss', line):
+							state = False
+						else:
+							state = True
+					if re.search('rtt min', line):
+						statsLine += line
+				pingLog.close()
+			res['status'] = state
+			res['stats'] = statsLine
+		return res
 
 	def addSectionRow(self, sectionName):
 		sectionRow = ''
@@ -367,7 +407,7 @@ class HtmlReport():
 			detailsRow += '       <td bgcolor = "Green"><font color="white"><b>OK</b></font></td>\n'
 		else:
 			detailsRow += '       <td bgcolor = "Red"><font color="white"><b>KO</b></font></td>\n'
-		detailsRow += '       <td><pre>'+ details + '</td>\n'
+		detailsRow += '       <td><pre>'+ details + '</pre></td>\n'
 		detailsRow += '     </tr>\n'
 		return detailsRow
 

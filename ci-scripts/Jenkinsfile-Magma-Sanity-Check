@@ -187,6 +187,10 @@ pipeline {
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWC --tag=' + spgwcTag + ' 2>&1'
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeploySPGWU --tag=' + spgwuTag + ' 2>&1'
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployTrfGen --tag=production 2>&1'
+          if (cn_ci_host == 'orion') {
+            // SPGWU seems a bit long to be healthy on orion
+            sh 'sleep 30'
+          }
         }
       }
       post {
