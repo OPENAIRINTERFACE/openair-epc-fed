@@ -18,14 +18,9 @@
    - the `master` branch on the `magma` project is updated every day with new features, bug fixes...
 -  You expect the whole EPC to be running for hours and days without any restart
 
-**CAUTION: there is still a few issues when running the whole OAI stack**
-
-  *  OAI LTE eNB Softmodem
-  *  OAI LTE UE Softmodem
-
-We are currently working on the RAN side to fix these issues.
-
 **2021/07/28 Update: you have now the choice to either pull images or build your-self.**
+
+**2022/02/25 Update: MAGMA-MME can now be used with a full OAI stack to perform OAI RF simulation.**
 
 **Table of Contents**
 
