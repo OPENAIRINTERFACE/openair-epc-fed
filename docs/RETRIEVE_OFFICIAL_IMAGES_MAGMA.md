@@ -14,8 +14,6 @@
 
 This page is only valid for an `Ubuntu18` host.
 
-For the moment, you will still have to build the MAGMA MME. Please refer to [Build your own images](./BUILD_IMAGES_MAGMA_MME.md).
-
 If you are using any other distributions, please refer to [Build your own images](./BUILD_IMAGES_MAGMA_MME.md).
 
 If you want to the up-to-date new features, please refer to [Build your own images](./BUILD_IMAGES_MAGMA_MME.md).
@@ -38,9 +36,10 @@ Password:
 Now pull images.
 
 ```bash
-$ docker pull rdefosseoai/oai-hss
-$ docker pull rdefosseoai/oai-spgwc
-$ docker pull rdefosseoai/oai-spgwu-tiny
+$ docker pull rdefosseoai/oai-hss:latest
+$ docker pull rdefosseoai/oai-spgwc:latest
+$ docker pull rdefosseoai/oai-spgwu-tiny:latest
+$ docker pull rdefosseoai/magma-mme:latest
 ```
 
 And **re-tag** them for tutorials' docker-compose file to work.
@@ -49,28 +48,34 @@ And **re-tag** them for tutorials' docker-compose file to work.
 $ docker image tag rdefosseoai/oai-hss:latest oai-hss:production
 $ docker image tag rdefosseoai/oai-spgwc:latest oai-spgwc:production
 $ docker image tag rdefosseoai/oai-spgwu-tiny:latest oai-spgwu-tiny:production
+$ docker image tag rdefosseoai/magma-mme:latest magma-mme:master
 ```
+
+**CAUTION: The `MAGMA-MME` image is not updated as frequently as the other images and does not have any hack.**
+
+**We still recommend that you build yourselves the MAGMA-MME image as described [here](./BUILD_IMAGES_MAGMA_MME.md).**
+
 # Synchronizing the tutorials #
 
 **CAUTION: PLEASE READ THIS SECTION VERY CAREFULLY!**
 
 This repository only has tutorials and Continuous Integration scripts.
 
-**At the time of writing (2021/07/28), the release tag is `v1.1.2`.**
+**At the time of writing (2022/02/25), the release tag is `v1.2.0`.**
 
 | CNF Name    | Branch Name | Tag        | Ubuntu 18.04 | RHEL8 (UBI8)    |
 | ----------- | ----------- | ---------- | ------------ | ----------------|
-| FED REPO    | N/A         | `v1.1.2`   |              |                 |
-| HSS         | `master`    | `v1.1.2`   | X            | X               |
-| SPWG-C      | `master`    | `v1.1.2`   | X            | X               |
-| SPGW-U-TINY | `master`    | `v1.1.2`   | X            | X               |
+| FED REPO    | N/A         | `v1.2.0`   |              |                 |
+| HSS         | `master`    | `v1.2.0`   | X            | X               |
+| SPWG-C      | `master`    | `v1.2.0`   | X            | X               |
+| SPGW-U-TINY | `master`    | `v1.2.0`   | X            | X               |
 
 ```bash
 # Clone directly on the latest release tag
-$ git clone --branch v1.1.2 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
+$ git clone --branch v1.2.0 https://github.com/OPENAIRINTERFACE/openair-epc-fed.git
 $ cd openair-epc-fed
 # If you forgot to clone directly to the latest release tag
-$ git checkout -f v1.1.2
+$ git checkout -f v1.2.0
 
 # Synchronize all git submodules
 $ ./scripts/syncComponents.sh

@@ -37,7 +37,7 @@ Here is a picture of what we will be doing:
 By just deploying the Cassandra container(s), you will create 2 docker networks:
 
 ```bash
-$ cd docker-compose/oai-mme-legacy
+$ cd docker-compose/magma-mme-demo
 $ docker-compose up -d db_init
 Creating network "demo-oai-private-net" with the default driver
 Creating network "demo-oai-public-net" with the default driver
