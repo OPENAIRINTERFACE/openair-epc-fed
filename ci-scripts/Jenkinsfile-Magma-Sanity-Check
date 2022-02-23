@@ -169,7 +169,7 @@ pipeline {
         }
       }
     }
-    stage ('Deploy EPC on RHEL8 host') {
+    stage ('Deploy EPC') {
       steps {
         script {
           // Currently docker-compose does not work with podman3 the way we want
