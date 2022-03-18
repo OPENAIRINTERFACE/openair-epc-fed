@@ -70,8 +70,8 @@ pipeline {
           if (cn_ci_host == 'cetautomatix') {
             containerCli = 'sudo podman'
             containerHealth = 'Healthcheck'
-            oaiEnbTag = 'develop-2021-w20-gen'
-            oaiLteUeTag = 'develop-2021-w20-gen'
+            oaiEnbTag = 'develop-2022-w10'
+            oaiLteUeTag = 'develop-2022-w10'
             reportName = 'test_results_magma_epc_rhel8.html'
             zipName = 'fed_podman_logs.zip'
           } else if (cn_ci_host == 'orion') {
@@ -252,9 +252,7 @@ pipeline {
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimENB --tag=' + oaiEnbTag + ' 2>&1'
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=DeployRfSimUE --tag=' + oaiLteUeTag + ' 2>&1'
           sh 'sleep 120'
-          if (cn_ci_host == 'orion') {
-            sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=TestTrafficPing 2>&1'
-          }
+          sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=TestTrafficPing 2>&1'
           // Retrieve all logs
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RetrieveLogs'
           retrievedLogs = true
