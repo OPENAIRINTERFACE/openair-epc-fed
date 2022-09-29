@@ -204,17 +204,25 @@ class deployWithOAIran:
 
         subprocess_run_w_echo(self.cli + ' run --privileged --name cicd-oai-mme --hostname mme --network cicd-oai-public-net --ip ' + CICD_MME_PUBLIC_ADDR + ' --volume ' + mmeEntrypoint + ':/magma-mme/bin/entrypoint.sh --env-file ' + mmeEnvFile + ' --entrypoint "/magma-mme/bin/entrypoint.sh" --health-cmd "pgrep --count oai_mme" -d magma-mme:' + self.tag)
 
-        count = 0
-        runCount = 0
         status = False
-        while (count < 10) and (runCount < 5):
-            res = subprocess.check_output(self.cli + ' top cicd-oai-mme', shell=True, universal_newlines=True)
-            if re.search('/magma-mme/bin/oai_mme -c /magma-mme/etc/mme.conf', str(res)):
-                runCount += 1
-                if runCount == 5:
-                    status = True
-            count += 1
-            time.sleep(2)
+        startTries = 0
+        while not status and startTries < 3:
+            count = 0
+            runCount = 0
+            while (count < 10) and (runCount < 5):
+                res = subprocess.check_output(self.cli + ' top cicd-oai-mme', shell=True, universal_newlines=True)
+                if re.search('/magma-mme/bin/oai_mme -c /magma-mme/etc/mme.conf', str(res)):
+                    runCount += 1
+                    if runCount == 5:
+                        status = True
+                count += 1
+                time.sleep(2)
+            if not status:
+                print ('Try #' + str(startTries) + ': failed')
+                startTries += 1
+                if startTries < 3:
+                    subprocess_run_w_echo(self.cli + ' restart cicd-oai-mme')
+                    time.sleep(2)
         if status:
             print ('Deployment MAGMA-MME --> OK')
         else:
@@ -287,7 +295,12 @@ class deployWithOAIran:
             time.sleep(1)
             captureCmd = 'tcpdump'
         else:
-            captureCmd = 'tshark'
+            time.sleep(2)
+            subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "apt-get update -y > /dev/null 2>&1"')
+            time.sleep(1)
+            subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "apt-get install -y tcpdump > /dev/null 2>&1"')
+            time.sleep(1)
+            captureCmd = 'tcpdump'
         subprocess_run_w_echo(self.cli + ' exec -d cicd-oai-spgwc /bin/bash -c "nohup ' + captureCmd + ' -i any -w /openair-spgwc/spgwc.pcap > /dev/null 2>&1"')
 
         count = 0
@@ -457,10 +470,10 @@ class deployWithOAIran:
 
         # First stop tcpdump capture on MME container
         subprocess_run_w_echo(self.cli + ' exec cicd-oai-mme /bin/bash -c "killall ' + captureCmd + '"')
-        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "killall ' + captureCmd + '"')
+        subprocess_run_w_echo(self.cli + ' exec cicd-oai-spgwc /bin/bash -c "killall tcpdump"')
         time.sleep(2)
         try:
-            res = subprocess.check_output(self.cli + ' exec cicd-oai-mme /bin/bash -c "ls /' + prefix + '-mme/*.pcap"', shell=True, universal_newlines=True)
+            res = subprocess.check_output(self.cli + ' exec cicd-oai-mme /bin/bash -c "ls -t /' + prefix + '-mme/*.pcap | head -1"', shell=True, universal_newlines=True)
             subprocess_run_w_echo(self.cli + ' cp cicd-oai-mme:' + res.strip() + ' archives/ || true')
         except:
             pass
