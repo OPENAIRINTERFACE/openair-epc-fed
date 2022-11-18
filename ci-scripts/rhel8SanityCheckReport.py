@@ -70,9 +70,9 @@ class HtmlReport():
 		self.file.write('  <table width = "100%" style="border-collapse: collapse; border: none;">\n')
 		self.file.write('   <tr style="border-collapse: collapse; border: none;">\n')
 		# SVG has a invisible background color -- adding it.
-		self.file.write('     <td bgcolor="#5602a4" style="border-collapse: collapse; border: none;">\n')
+		self.file.write('     <td style="border-collapse: collapse; border: none;">\n')
 		self.file.write('       <a href="https://www.magmacore.org/">\n')
-		self.file.write('          <img src="https://www.magmacore.org/img/magma-logo.svg" alt="" border="none" height=50 width=150>\n')
+		self.file.write('          <img src="https://magmacore.org/wp-content/uploads/sites/5/2022/03/purple-logo.svg" alt="" border="none" height=50 width=150>\n')
 		self.file.write('          </img>\n')
 		self.file.write('       </a>\n')
 		self.file.write('     </td>\n')
