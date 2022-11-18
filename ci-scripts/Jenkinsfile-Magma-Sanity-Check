@@ -81,6 +81,13 @@ pipeline {
             oaiLteUeTag = 'develop'
             reportName = 'test_results_magma_epc_u18.html'
             zipName = 'fed_docker_logs.zip'
+          } else if (cn_ci_host == 'selfix') {
+            containerCli = 'docker'
+            containerHealth = 'Health'
+            oaiEnbTag = 'develop'
+            oaiLteUeTag = 'develop'
+            reportName = 'test_results_magma_epc_u18.html'
+            zipName = 'fed_docker_logs.zip'
           } else {
             error 'Not supported CI host'
           }
