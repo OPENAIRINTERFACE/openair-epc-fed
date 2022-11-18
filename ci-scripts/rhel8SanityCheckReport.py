@@ -284,6 +284,9 @@ class HtmlReport():
 			details += self.addDetailsRow('HSS S6A Response', res['hss_answer'], 'Host = ' + res['origin_host'])
 			if not res['mme_request'] or not res['hss_answer']:
 				status = False
+				print ('MME to HSS Connection => KO')
+			else:
+				print ('MME to HSS Connection => OK')
 			# eNB to MME S1 Connection
 			res = check_if_enb_connects_to_mme('archives/' + pcap_fil)
 			details += self.addSectionRow('eNB S1 Setup to MME')
@@ -291,6 +294,9 @@ class HtmlReport():
 			details += self.addDetailsRow('MME SCTP INIT_ACK', res['mme_init_answer'], 'n/a')
 			if not res['enb_init_req'] or not res['mme_init_answer']:
 				status = False
+				print ('eNB to MME S1 Connection => KO')
+			else:
+				print ('eNB to MME S1 Connection => OK')
 			rowDetails = 'MCC = ' + res['enb_mcc'] + '\n'
 			rowDetails += 'MNC = ' + res['enb_mnc'] + '\n'
 			rowDetails += 'eNB Name = ' + res['enb_name']
@@ -298,6 +304,9 @@ class HtmlReport():
 			details += self.addDetailsRow('MME S1 Setup Response', res['mme_s1_setup_res'], 'n/a')
 			if not res['enb_s1_setup_req'] or not res['mme_s1_setup_res']:
 				status = False
+				print ('eNB to MME S1 Connection => KO')
+			else:
+				print ('eNB to MME S1 Connection => OK')
 			# UE attachment
 			res = check_if_ue_attachs('archives/' + pcap_fil)
 			details += self.addSectionRow('UE Attachment')
@@ -306,10 +315,16 @@ class HtmlReport():
 			details += self.addDetailsRow('UE NAS Auth Res', res['nas_auth_res'], 'n/a')
 			if not res['ue_init_msg'] or not res['nas_auth_req'] or not res['nas_auth_res']:
 				status = False
+				print ('UE attachment => KO')
+			else:
+				print ('UE attachment => OK')
 			details += self.addDetailsRow('MME NAS Security Mode Command', res['nas_security_cmd'], 'n/a')
 			details += self.addDetailsRow('UE NSA Security Mode Complete', res['nas_security_cmplt'], 'n/a')
 			if not res['nas_security_cmd'] or not res['nas_security_cmplt']:
 				status = False
+				print ('NAS security => KO')
+			else:
+				print ('NAS security => OK')
 			rowDetails = 'IMSI = ' + res['s11_cr_sess_imsi'] + '\n'
 			rowDetails += 'MCC = ' + res['s11_cr_sess_mcc'] + '\n' 
 			rowDetails += 'MNC = ' + res['s11_cr_sess_mnc'] + '\n' 
@@ -320,18 +335,27 @@ class HtmlReport():
 			rowDetails = 'APN = ' + res['apn'] + '\n'
 			if not res['s11_create_session_req'] or not res['s11_create_session_res']:
 				status = False
+				print ('S11 Session creation => KO')
+			else:
+				print ('S11 Session creation => OK')
 			rowDetails += 'Transport Layer IP (ie SPGW-U) = ' + res['transportlayeraddress']
 			details += self.addDetailsRow('MME NAS UE Initial Context', res['initial_ue_context_req'], rowDetails)
 			rowDetails = 'Transport Layer IP (ie eNB) = ' + res['enb_transportlayeraddress']
 			details += self.addDetailsRow('UE NAS UE Initial Context Response', res['initial_ue_context_res'], rowDetails)
 			if not res['initial_ue_context_req'] or not res['initial_ue_context_res']:
 				status = False
+				print ('Initial UE Context => KO')
+			else:
+				print ('Initial UE Context => OK')
 			rowDetails = 'eNB F-TEID = ' + res['s11_mod_bear_fteid']
 			details += self.addDetailsRow('S11 Modify Bearer Request', res['s11_modify_bearer_req'], rowDetails)
 			rowDetails = 'SPGW-U F-TEID = ' + res['s11_mod_bear_ufteid']
 			details += self.addDetailsRow('S11 Modify Bearer Response', res['s11_modify_bearer_res'], rowDetails)
 			if not res['s11_modify_bearer_req'] or not res['s11_modify_bearer_res']:
 				status = False
+				print ('S11 Modify Bearer => KO')
+			else:
+				print ('S11 Modify Bearer => OK')
 		# Checking the CUPS packets
 		pcap_list = [f for f in os.listdir('archives') if os.path.isfile(os.path.join('archives', f)) and f.startswith('spgwc') and f.endswith('.pcap')]
 		for pcap_fil in pcap_list:
@@ -342,28 +366,38 @@ class HtmlReport():
 			details += self.addDetailsRow('SPGWC SX Assoc Response', res['spgwc_answer'], 'IP = ' + res['spgwc_ipv4'])
 			if not res['spgwu_request'] or not res['spgwc_answer']:
 				status = False
+				print ('SX Association => KO')
+			else:
+				print ('SX Association => OK')
 			# SPGWC to SPGWU HeartBeat
 			res = check_cups_heartbeat('archives/' + pcap_fil)
 			details += self.addDetailsRow('SPGWC SX HRT Request', res['spgwc_hrt_request'], 'NB REQ = ' + res['spgwc_hrt_nb_req'])
 			details += self.addDetailsRow('SPGWU SX HRT Response', res['spgwu_hrt_answer'], 'NB RES = ' + res['spgwu_hrt_nb_res'])
 			if not res['spgwc_hrt_request'] or not res['spgwu_hrt_answer']:
 				status = False
+				print ('SX Heartbeat => KO')
+			else:
+				print ('SX Heartbeat => OK')
 		if os.path.isfile('archives/ping_trf_gen_from_ue.log') or os.path.isfile('archives/ping_ue_from_trf_gen.log'):
 			details += self.addSectionRow('Ping Traffic Test')
 			res = self.checkPingLog('archives/ping_trf_gen_from_ue.log')
 			if res['status']:
-				print('Ping From UE : OK')
+				print('Ping From UE => OK')
 			else:
-				print('Ping From UE : KO')
+				print('Ping From UE => KO')
 			details += self.addDetailsRow('Ping From UE', res['status'], res['stats'])
 			res = self.checkPingLog('archives/ping_ue_from_trf_gen.log')
 			if res['status']:
-				print('Ping From TRF GEN : OK')
+				print('Ping From TRF GEN => OK')
 			else:
-				print('Ping From TRF GEN : KO')
+				print('Ping From TRF GEN => KO')
 			details += self.addDetailsRow('Ping From TRF GEN', res['status'], res['stats'])
 		details += '  </table>\n'
 		details += '  </div>\n'
+		if status:
+			print ('FULL CHECK => OK')
+		else:
+			print ('FULL CHECK => KO')
 		return [status, details]
 
 	def checkPingLog(self, fileName):

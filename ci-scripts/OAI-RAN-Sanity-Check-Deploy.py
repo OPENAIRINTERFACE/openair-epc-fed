@@ -393,7 +393,7 @@ class deployWithOAIran:
         status = False
         while (count < 10) and (runCount < 5):
             res = subprocess.check_output(self.cli + ' top cicd-oai-enb', shell=True, universal_newlines=True)
-            if re.search('/opt/oai-enb/bin/lte-softmodem.Rel15 -O /opt/oai-enb/etc/enb.conf', str(res)):
+            if re.search('/opt/oai-enb/bin/lte-softmodem', str(res)):
                 runCount += 1
                 if runCount == 5:
                     status = True
@@ -429,7 +429,7 @@ class deployWithOAIran:
         status = False
         while (count < 10) and (runCount < 5):
             res = subprocess.check_output(self.cli + ' top cicd-oai-ue', shell=True, universal_newlines=True)
-            if re.search('/opt/oai-lte-ue/bin/lte-uesoftmodem.Rel15', str(res)):
+            if re.search('/opt/oai-lte-ue/bin/lte-uesoftmodem', str(res)):
                 runCount += 1
                 if runCount == 5:
                     status = True
