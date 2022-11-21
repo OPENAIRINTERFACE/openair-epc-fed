@@ -37,7 +37,9 @@ ENB_IP_ADDRESS = '192.168.61.80'
 
 # Diameter constants
 FLAGS__REQUEST = '0x00000080'
+FLAGS__REQUEST_V2 = '0x80'
 FLAGS__ANSWER = '0x00000000'
+FLAGS__ANSWER_V2 = '0x00'
 
 CMD_CODE__ABORT_SESSION = '274'
 CMD_CODE__ACCOUNTING = '271'
@@ -111,11 +113,13 @@ def check_if_mme_connects_to_hss(pcap_file):
 			if pkt is not None:
 				if 'DIAMETER' in pkt:
 					if cnt == 0:
-						if pkt.diameter.flags == FLAGS__REQUEST and pkt.diameter.cmd_code == CMD_CODE__CAPABILITIES_EXCHANGE: 
+						if pkt.diameter.flags == FLAGS__REQUEST and pkt.diameter.cmd_code == CMD_CODE__CAPABILITIES_EXCHANGE:
+							res['mme_request'] = True
+						if pkt.diameter.flags == FLAGS__REQUEST_V2 and pkt.diameter.cmd_code == CMD_CODE__CAPABILITIES_EXCHANGE:
 							res['mme_request'] = True
 					if cnt == 1:
-						if pkt.diameter.flags == FLAGS__ANSWER and pkt.diameter.cmd_code == CMD_CODE__CAPABILITIES_EXCHANGE:
-							if pkt.diameter.result_code == RES_CODE__DIAMETER_SUCCESS:
+						if pkt.diameter.flags == FLAGS__ANSWER or pkt.diameter.flags == FLAGS__ANSWER_V2:
+							if pkt.diameter.cmd_code == CMD_CODE__CAPABILITIES_EXCHANGE and pkt.diameter.result_code == RES_CODE__DIAMETER_SUCCESS:
 								res['hss_answer'] = True
 								res['origin_host']=pkt.diameter.origin_host
 								res['origin_realm']=pkt.diameter.origin_realm
@@ -222,14 +226,16 @@ def check_if_ue_attachs(pcap_file):
 					if pkt.sctp.chunk_type == CHUNK_TYPE__SACK:
 						if pkt.ip.src == MME_IP_ADDRESS and pkt.ip.dst == ENB_IP_ADDRESS and 'S1AP' in pkt:
 							if pkt.s1ap.procedurecode == PROC_CODE__ID_DOWNLINKNASTRANSPORT and pkt.s1ap.s1ap_pdu == S1AP_PDU_INITIATINGMESSAGE:
-								if pkt.s1ap.nas_eps_nas_msg_emm_type == NAS__AUTHENTICATION_REQ:
+								emmType = convertStringHexaToStringInteger(pkt.s1ap.nas_eps_nas_msg_emm_type)
+								if emmType == NAS__AUTHENTICATION_REQ:
 									res['nas_auth_req'] = True
 									print('MME --> send NAS AUTHENTICATION_REQ (pkt #' + str(cnt) + ')')
-								if pkt.s1ap.nas_eps_nas_msg_emm_type == NAS__SECURITY_MODE_CMD:
+								if emmType == NAS__SECURITY_MODE_CMD:
 									res['nas_security_cmd'] = True
 									print('MME --> send NAS SECURITY_MODE_CMD (pkt #' + str(cnt) + ')')
 							if pkt.s1ap.procedurecode == PROC_CODE__ID_INITIALCONTEXTSETUP and pkt.s1ap.s1ap_pdu == S1AP_PDU_INITIATINGMESSAGE:
-								if pkt.s1ap.nas_eps_nas_msg_emm_type == NAS__ATTACH_ACCEPT:
+								emmType = convertStringHexaToStringInteger(pkt.s1ap.nas_eps_nas_msg_emm_type)
+								if emmType == NAS__ATTACH_ACCEPT:
 									res['initial_ue_context_req'] = True
 									res['apn'] = pkt.s1ap.gsm_a_gm_sm_apn
 									res['transportlayeraddress'] = pkt.s1ap.transportlayeraddressipv4
@@ -237,10 +243,11 @@ def check_if_ue_attachs(pcap_file):
 
 						if pkt.ip.src == ENB_IP_ADDRESS and pkt.ip.dst == MME_IP_ADDRESS and 'S1AP' in pkt:
 							if pkt.s1ap.procedurecode == PROC_CODE__ID_UPLINKNASTRANSPORT and pkt.s1ap.s1ap_pdu == S1AP_PDU_INITIATINGMESSAGE:
-								if pkt.s1ap.nas_eps_nas_msg_emm_type == NAS__AUTHENTICATION_RES:
+								emmType = convertStringHexaToStringInteger(pkt.s1ap.nas_eps_nas_msg_emm_type)
+								if emmType == NAS__AUTHENTICATION_RES:
 									res['nas_auth_res'] = True
 									print('eNB --> send NAS AUTHENTICATION_RES (pkt #' + str(cnt) + ')')
-								if pkt.s1ap.nas_eps_nas_msg_emm_type == NAS__SECURITY_MODE_COMPLETE:
+								if emmType == NAS__SECURITY_MODE_COMPLETE:
 									res['nas_security_cmplt'] = True
 									print('eNB --> send NAS SECURITY_MODE_COMPLETE (pkt #' + str(cnt) + ')')
 					cnt += 1
@@ -332,3 +339,9 @@ def check_cups_heartbeat(pcap_file):
 		res['spgwu_hrt_answer'] = True
 		res['spgwu_hrt_nb_res'] = str(nb_responses)
 	return res
+
+def convertStringHexaToStringInteger(originalField):
+	intStringField = originalField
+	if intStringField.count('0x') > 0:
+		intStringField = str(int(intStringField, 16))
+	return intStringField
