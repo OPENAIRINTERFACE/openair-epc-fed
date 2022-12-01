@@ -147,7 +147,9 @@ pipeline {
 
           // On Ubuntu servers, we shall pull from private local registry
           if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
+            // Login
             sh containerCli + ' login -u oaicicd -p oaicicd selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
+            // HSS
             if ((hssTag == 'develop') && (hssBranch == 'develop')) {
               dir ('component/oai-hss') {
                 shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h"'
@@ -159,6 +161,31 @@ pipeline {
             sh containerCli + ' pull selfix.sboai.cs.eurecom.fr/oai-hss:' + hssTag
             sh containerCli + ' image tag selfix.sboai.cs.eurecom.fr/oai-hss:' + hssTag + ' oai-hss:' + hssTag
             sh containerCli + ' rmi selfix.sboai.cs.eurecom.fr/oai-hss:' + hssTag
+            // SPGWC
+            if ((spgwcTag == 'develop') && (spgwcBranch == 'develop')) {
+              dir ('component/oai-spgwc') {
+                shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h"'
+                shortenShaOne.trim()
+                spgwcTag = 'develop-' + shortenShaOne
+                echo "SPGWC_TAG will be ${spgwcTag}"
+              }
+            }
+            sh containerCli + ' pull selfix.sboai.cs.eurecom.fr/oai-spgwc:' + spgwcTag
+            sh containerCli + ' image tag selfix.sboai.cs.eurecom.fr/oai-spgwc:' + spgwcTag + ' oai-spgwc:' + spgwcTag
+            sh containerCli + ' rmi selfix.sboai.cs.eurecom.fr/oai-spgwc:' + spgwcTag
+            // SPGWU
+            if ((spgwuTag == 'develop') && (spgwuBranch == 'develop')) {
+              dir ('component/oai-spgwu-tiny') {
+                shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h"'
+                shortenShaOne.trim()
+                spgwuTag = 'develop-' + shortenShaOne
+                echo "SPGWU_TAG will be ${spgwuTag}"
+              }
+            }
+            sh containerCli + ' pull selfix.sboai.cs.eurecom.fr/oai-spgwu-tiny:' + spgwuTag
+            sh containerCli + ' image tag selfix.sboai.cs.eurecom.fr/oai-spgwu-tiny:' + spgwuTag + ' oai-spgwu-tiny:' + spgwuTag
+            sh containerCli + ' rmi selfix.sboai.cs.eurecom.fr/oai-spgwu-tiny:' + spgwuTag
+            // Logout
             sh containerCli + ' logout selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
           }
 
@@ -313,6 +340,8 @@ pipeline {
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks 2>&1'
           if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
             sh containerCli + ' rmi oai-hss:' + hssTag + ' || true'
+            sh containerCli + ' rmi oai-spgwc:' + spgwcTag + ' || true'
+            sh containerCli + ' rmi oai-spgwu-tiny:' + spgwuTag + ' || true'
           }
         }
       }
@@ -326,6 +355,8 @@ pipeline {
         sh containerCli + ' volume prune --force > /dev/null 2>&1 || true'
         if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
           sh containerCli + ' rmi oai-hss:' + hssTag + ' || true'
+          sh containerCli + ' rmi oai-spgwc:' + spgwcTag + ' || true'
+          sh containerCli + ' rmi oai-spgwu-tiny:' + spgwuTag + ' || true'
         }
         // Zipping all archived log files
         sh 'zip -r -qq ' + zipName + ' archives'
