@@ -147,7 +147,7 @@ pipeline {
 
           // On Ubuntu servers, we shall pull from private local registry
           if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
-            // Add the docker login to selfix local registry
+            sh containerCli + ' login -u oaicicd -p oaicicd selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
             if ((hssTag == 'develop') && (hssBranch == 'develop')) {
               dir ('component/oai-hss') {
                 shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h"'
@@ -156,7 +156,10 @@ pipeline {
                 echo "HSS_TAG will be ${hssTag}"
               }
             }
-            // Add the docker logout to selfix local registry
+            sh containerCli + ' pull selfix.sboai.cs.eurecom.fr/oai-hss:' + hssTag
+            sh containerCli + ' image tag selfix.sboai.cs.eurecom.fr/oai-hss:' + hssTag + ' oai-hss:' + hssTag
+            sh containerCli + ' rmi selfix.sboai.cs.eurecom.fr/oai-hss:' + hssTag
+            sh containerCli + ' logout selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
           }
 
           // Here we verify if all images tags are available.
@@ -308,6 +311,9 @@ pipeline {
         script {
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers 2>&1'
           sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks 2>&1'
+          if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
+            sh containerCli + ' rmi oai-hss:' + hssTag + ' || true'
+          }
         }
       }
     }
@@ -318,6 +324,9 @@ pipeline {
         sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveAllContainers > /dev/null 2>&1 || true'
         sh 'python3 ./ci-scripts/OAI-RAN-Sanity-Check-Deploy.py --action=RemoveNetworks > /dev/null 2>&1 || true'
         sh containerCli + ' volume prune --force > /dev/null 2>&1 || true'
+        if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
+          sh containerCli + ' rmi oai-hss:' + hssTag + ' || true'
+        }
         // Zipping all archived log files
         sh 'zip -r -qq ' + zipName + ' archives'
         if (fileExists(zipName)) {
