@@ -176,7 +176,7 @@ pipeline {
             // SPGWU
             if ((spgwuTag == 'develop') && (spgwuBranch == 'develop')) {
               dir ('component/oai-spgwu-tiny') {
-                shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h"'
+                shortenShaOne = sh returnStdout: true, script: 'git log -1 --pretty=format:"%h" --abbrev=8'
                 shortenShaOne.trim()
                 spgwuTag = 'develop-' + shortenShaOne
                 echo "SPGWU_TAG will be ${spgwuTag}"
