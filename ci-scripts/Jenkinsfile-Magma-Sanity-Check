@@ -140,6 +140,13 @@ pipeline {
               spgwuBranch = params.SPGWU_BRANCH
               echo "Upstream Job passed SPGWU_BRANCH to use: ${spgwuBranch}"
             }
+          } else {
+            if (params.MAGMA_MME_TAG != null) {
+              magmaMmeTag = params.MAGMA_MME_TAG
+              if (magmaMmeTag != 'master') {
+                echo "Testing MAGMA_MME_TAG to use: ${magmaMmeTag}"
+              }
+            }
           }
 
           // Prepare workspace
