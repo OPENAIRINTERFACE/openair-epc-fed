@@ -20,7 +20,7 @@ If you want to the up-to-date new features, please refer to [Build your own imag
 
 # Pulling the images from Docker Hub #
 
-Currently the images are hosted under the user account `rdefosseoai`.
+Currently the images are hosted under the user account `oaisoftwarealliance`.
 
 This may change in the future.
 
@@ -36,19 +36,19 @@ Password:
 Now pull images.
 
 ```bash
-$ docker pull rdefosseoai/oai-hss:latest
-$ docker pull rdefosseoai/oai-spgwc:latest
-$ docker pull rdefosseoai/oai-spgwu-tiny:latest
-$ docker pull rdefosseoai/magma-mme:latest
+$ docker pull oaisoftwarealliance/oai-hss:latest
+$ docker pull oaisoftwarealliance/oai-spgwc:latest
+$ docker pull oaisoftwarealliance/oai-spgwu-tiny:latest
+$ docker pull oaisoftwarealliance/magma-mme:latest
 ```
 
 And **re-tag** them for tutorials' docker-compose file to work.
 
 ```bash
-$ docker image tag rdefosseoai/oai-hss:latest oai-hss:production
-$ docker image tag rdefosseoai/oai-spgwc:latest oai-spgwc:production
-$ docker image tag rdefosseoai/oai-spgwu-tiny:latest oai-spgwu-tiny:production
-$ docker image tag rdefosseoai/magma-mme:latest magma-mme:master
+$ docker image tag oaisoftwarealliance/oai-hss:latest oai-hss:production
+$ docker image tag oaisoftwarealliance/oai-spgwc:latest oai-spgwc:production
+$ docker image tag oaisoftwarealliance/oai-spgwu-tiny:latest oai-spgwu-tiny:production
+$ docker image tag oaisoftwarealliance/magma-mme:latest magma-mme:master
 ```
 
 **CAUTION: The `MAGMA-MME` image is not updated as frequently as the other images and does not have any hack.**
