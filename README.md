@@ -24,10 +24,10 @@
 </p>
 
 <p align="center">
-  <a href="https://hub.docker.com/r/rdefosseoai/oai-hss"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-hss?label=HSS%20docker%20pulls"></a>
-  <a href="https://hub.docker.com/r/rdefosseoai/oai-spgwc"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-spgwc?label=SPGWC%20docker%20pulls"></a>
-  <a href="https://hub.docker.com/r/rdefosseoai/oai-spgwu-tiny"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/oai-spgwu-tiny?label=SPGWU-TINY%20docker%20pulls"></a>
-  <a href="https://hub.docker.com/r/rdefosseoai/magma-mme"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/rdefosseoai/magma-mme?label=MAGMA-MME%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/oaisoftwarealliance/oai-hss"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/oaisoftwarealliance/oai-hss?label=HSS%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/oaisoftwarealliance/oai-spgwc"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/oaisoftwarealliance/oai-spgwc?label=SPGWC%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/oaisoftwarealliance/oai-spgwu-tiny"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/oaisoftwarealliance/oai-spgwu-tiny?label=SPGWU-TINY%20docker%20pulls"></a>
+  <a href="https://hub.docker.com/r/oaisoftwarealliance/magma-mme"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/oaisoftwarealliance/magma-mme?label=MAGMA-MME%20docker%20pulls"></a>
 </p>
 
   Openair-cn is an implementation of the 3GPP specifications concerning the
